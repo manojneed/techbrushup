@@ -42,8 +42,6 @@ final readonly class SignatureFormatter {
     elseif (\is_object($callable) && \method_exists($callable, '__invoke')) {
       $reflection = new \ReflectionMethod($callable, '__invoke');
     }
-    // @todo Fix this.
-    // @phpstan-ignore-next-line
     elseif (\function_exists($callable)) {
       $reflection = new \ReflectionFunction($callable);
     }

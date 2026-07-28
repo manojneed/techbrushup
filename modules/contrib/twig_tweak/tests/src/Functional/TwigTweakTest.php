@@ -303,6 +303,11 @@ final class TwigTweakTest extends BrowserTestBase {
     $xpath = '//div[@class = "tt-token-replace" and text() = "Site name: Drupal"]';
     $this->assertXpath($xpath);
 
+    // -- Plain-text token replacement preserves ampersands in a token's
+    // value, where token_replace would HTML-encode them to "&amp;".
+    $xpath = '//div[@class = "tt-token-replace-plain" and text() = "Tagline: Fast & flexible"]';
+    $this->assertXpath($xpath);
+
     // -- Contextual links.
     $xpath = '//div[@class="tt-contextual-links" and not(div[@data-contextual-id])]';
     $this->assertXpath($xpath);
@@ -336,6 +341,10 @@ final class TwigTweakTest extends BrowserTestBase {
 
     // -- Truncate.
     $xpath = '//div[@class = "tt-truncate" and text() = "Hello…"]';
+    $this->assertXpath($xpath);
+
+    // -- Truncate a NULL value without a deprecation. See issue #3534492.
+    $xpath = '//div[@class = "tt-truncate-null" and text() = "[]"]';
     $this->assertXpath($xpath);
 
     // -- 'with'.

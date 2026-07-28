@@ -4,12 +4,14 @@ namespace Drupal\Tests\block_visibility_groups\FunctionalJavascript;
 
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\Tests\block_visibility_groups\Traits\BlockVisibilityGroupTrait;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Test javascript dependent functionality.
  *
  * @group block_visibility_groups
  */
+#[RunTestsInSeparateProcesses]
 class BlockVisibilityGroupsUiTest extends WebDriverTestBase {
 
   use BlockVisibilityGroupTrait;
@@ -123,7 +125,7 @@ class BlockVisibilityGroupsUiTest extends WebDriverTestBase {
     // Assert "Global Blocks" values.
     $this->getSession()->getPage()->selectFieldOption('edit-select', '- Global blocks -');
 
-    $this->assertSession()->elementNotExists('css', "tr[data-drupal-selector=\"edit-blocks-{$block_1->id()}\"]");
+    $this->assertSession()->elementAttributeContains('css', "tr[data-drupal-selector=\"edit-blocks-{$block_1->id()}\"]", 'class', 'hidden');
     $this->assertSession()->elementExists('css', "tr[data-drupal-selector=\"edit-blocks-{$block_2->id()}\"]");
 
     // Assert "Specific Group" values.
@@ -137,7 +139,7 @@ class BlockVisibilityGroupsUiTest extends WebDriverTestBase {
     $this->getSession()->getPage()->uncheckField('Show Global Blocks');
 
     $this->assertSession()->elementExists('css', "tr[data-drupal-selector=\"edit-blocks-{$block_1->id()}\"]");
-    $this->assertSession()->elementNotExists('css', "tr[data-drupal-selector=\"edit-blocks-{$block_2->id()}\"]");
+    $this->assertSession()->elementAttributeContains('css', "tr[data-drupal-selector=\"edit-blocks-{$block_2->id()}\"]", 'class', 'hidden');
   }
 
 }

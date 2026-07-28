@@ -1,16 +1,18 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Drupal\Tests\block_visibility_groups\FunctionalJavascript;
 
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests the module with Javascript interactions.
  *
  * @group block_visibility_groups
  */
+#[RunTestsInSeparateProcesses]
 class BlockVisibilityGroupsTest extends WebDriverTestBase {
 
   /**

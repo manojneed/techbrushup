@@ -4,13 +4,33 @@ namespace Drupal\Tests\block_visibility_groups\Functional;
 
 use Drupal\block_visibility_groups\Entity\BlockVisibilityGroup;
 use Drupal\Core\Url;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests the block_visibility_groups UI.
  *
  * @group block_visibility_groups
  */
+#[RunTestsInSeparateProcesses]
 class BlockVisibilityGroupsUiTest extends BlockVisibilityGroupsTestBase {
+
+  /**
+   * Tests saving a block without selecting a visibility group.
+   */
+  public function testBlockWithoutGroupDoesNotStoreEmptyConfiguration(): void {
+    /** @var \Drupal\block\Entity\Block $block */
+    $block = $this->drupalPlaceBlock('system_powered_by_block');
+
+    $this->drupalGet('admin/structure/block/manage/' . $block->id());
+    $this->getSession()->getPage()->pressButton('Save block');
+
+    $block = \Drupal::service('entity_type.manager')
+      ->getStorage('block')
+      ->loadUnchanged($block->id());
+
+    $visibility = $block->getVisibility();
+    self::assertArrayNotHasKey('condition_group', $visibility);
+  }
 
   /**
    * Test adding a block to a visibility group through the UI.
@@ -41,6 +61,22 @@ class BlockVisibilityGroupsUiTest extends BlockVisibilityGroupsTestBase {
 
     $actual = $block->getVisibility();
     self::assertEquals($actual['condition_group']['block_visibility_group'], $group->id());
+  }
+
+  /**
+   * Tests editing a block assigned to a visibility group.
+   */
+  public function testEditBlockAssignedToGroup(): void {
+    $group = $this->createGroup();
+    $block = $this->placeBlockInGroup('system_powered_by_block', $group->id());
+
+    $this->drupalGet('admin/structure/block/manage/' . $block->id());
+
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->fieldValueEquals(
+      'visibility[condition_group][block_visibility_group]',
+      $group->id(),
+    );
   }
 
   /**

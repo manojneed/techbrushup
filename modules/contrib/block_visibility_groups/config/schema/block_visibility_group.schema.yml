@@ -17,8 +17,33 @@ block_visibility_groups.block_visibility_group.*:
       type: sequence
       label: 'Conditions'
       sequence:
-        type: condition.plugin.[id]
+        type: condition.plugin
         label: 'Condition'
+        mapping:
+          id:
+            type: string
+          uuid:
+            type: string
+            label: 'UUID'
+          pages:
+            type: string
+          roles:
+            type: sequence
+            sequence:
+              type: string
+          block_visibility_group:
+            type: string
+            label: 'Block Visibility Group'
+          negate:
+            type: boolean
+          bundles:
+            type: sequence
+            sequence:
+              type: string
+          context_mapping:
+            type: sequence
+            sequence:
+              type: string
     allow_other_conditions:
       type: boolean
       label: 'Allow Other Conditions'
@@ -26,5 +51,21 @@ block_visibility_groups.block_visibility_group.*:
 condition.plugin.condition_group:
   type: condition.plugin
   mapping:
+    id:
+      type: string
     block_visibility_group:
       type: string
+      label: 'Block Visibility Group'
+    uuid:
+      type: string
+      label: 'UUID'
+    negate:
+      type: boolean
+    bundles:
+      type: sequence
+      sequence:
+        type: string
+    context_mapping:
+      type: sequence
+      sequence:
+        type: string

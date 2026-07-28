@@ -91,12 +91,13 @@ final class TwigTweakExtension extends AbstractExtension {
 
     $filters = [
       new TwigFilter('token_replace', self::tokenReplaceFilter(...)),
+      new TwigFilter('token_replace_plain', self::tokenReplacePlainFilter(...)),
       new TwigFilter('preg_replace', self::pregReplaceFilter(...)),
       new TwigFilter('image_style', self::imageStyleFilter(...)),
       new TwigFilter('transliterate', self::transliterateFilter(...)),
       new TwigFilter('check_markup', \check_markup(...)),
       new TwigFilter('format_size', ByteSizeMarkup::create(...)),
-      new TwigFilter('truncate', Unicode::truncate(...)),
+      new TwigFilter('truncate', self::truncateFilter(...)),
       new TwigFilter('view', self::viewFilter(...)),
       new TwigFilter('with', self::withFilter(...)),
       new TwigFilter('data_uri', self::dataUriFilter(...)),
@@ -469,6 +470,30 @@ final class TwigTweakExtension extends AbstractExtension {
   }
 
   /**
+   * Replaces all tokens in a given plain text string with appropriate values.
+   *
+   * @param string $text
+   *   Plain text string containing replaceable tokens.
+   * @param array $data
+   *   (optional) An array of keyed objects. For simple replacement scenarios
+   *   'node', 'user', and others are common keys, with an accompanying node or
+   *   user object being the value. Some token types, like 'site', do not
+   *   require any explicit information from $data and can be replaced even if
+   *   it is empty.
+   * @param array $options
+   *   (optional) A keyed array of settings and flags to control the token
+   *   replacement process.
+   *
+   * @return string
+   *   The entered plain text with tokens replaced.
+   *
+   * @see \Drupal\Core\Utility\Token::replacePlain()
+   */
+  private static function tokenReplacePlainFilter(string $text, array $data = [], array $options = []): string {
+    return \Drupal::token()->replacePlain($text, $data, $options);
+  }
+
+  /**
    * Performs a regular expression search and replace.
    *
    * @param string $text
@@ -650,6 +675,34 @@ final class TwigTweakExtension extends AbstractExtension {
    */
   private static function fileUrlFilter($input, bool $relative = TRUE): ?string {
     return \Drupal::service('twig_tweak.url_extractor')->extractUrl($input, $relative);
+  }
+
+  /**
+   * Truncates a UTF-8-encoded string safely to a number of characters.
+   *
+   * This wraps \Drupal\Component\Utility\Unicode::truncate() so that a NULL
+   * input (e.g. an empty field value) does not trigger a deprecation from
+   * mb_strlen(). The signature intentionally mirrors Unicode::truncate() so
+   * that existing templates keep working unchanged.
+   *
+   * @param string|null $string
+   *   The string to truncate. A NULL value is treated as an empty string.
+   * @param int $max_length
+   *   An upper limit on the returned string length.
+   * @param bool $wordsafe
+   *   (optional) If TRUE, attempt to truncate on a word boundary.
+   * @param bool $add_ellipsis
+   *   (optional) If TRUE, add '...' to the end of the truncated string.
+   * @param int $min_wordsafe_length
+   *   (optional) The minimum acceptable length when $wordsafe is TRUE.
+   *
+   * @return string
+   *   The truncated string.
+   *
+   * @see \Drupal\Component\Utility\Unicode::truncate()
+   */
+  private static function truncateFilter($string, $max_length, $wordsafe = FALSE, $add_ellipsis = FALSE, $min_wordsafe_length = 1) {
+    return Unicode::truncate($string ?? '', $max_length, $wordsafe, $add_ellipsis, $min_wordsafe_length);
   }
 
   /**

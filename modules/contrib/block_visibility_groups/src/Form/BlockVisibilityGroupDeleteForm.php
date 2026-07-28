@@ -4,6 +4,7 @@ namespace Drupal\block_visibility_groups\Form;
 
 use Drupal\block_visibility_groups\BlockVisibilityLister;
 use Drupal\Core\Entity\EntityConfirmFormBase;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 
@@ -13,8 +14,8 @@ use Drupal\Core\Url;
 class BlockVisibilityGroupDeleteForm extends EntityConfirmFormBase {
   use BlockVisibilityLister;
 
-  const UNSET_BLOCKS = 'UNSET-BLOCKS';
-  const DELETE_BLOCKS = 'DELETE-BLOCKS';
+  const string UNSET_BLOCKS = 'UNSET-BLOCKS';
+  const string DELETE_BLOCKS = 'DELETE-BLOCKS';
 
   /**
    * {@inheritdoc}
@@ -40,7 +41,7 @@ class BlockVisibilityGroupDeleteForm extends EntityConfirmFormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
     // Handle current blocks according to user's selection.
     if ($blocks = $this->getBlocksForGroup()) {
       $blocks_op = $form_state->getValue('blocks_op');
@@ -78,8 +79,10 @@ class BlockVisibilityGroupDeleteForm extends EntityConfirmFormBase {
    *   The blocks.
    * @param string $group_id
    *   The group id.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function setBlocksGroup(array $blocks, $group_id = '') {
+  public function setBlocksGroup(array $blocks, string $group_id = ''): void {
     /** @var \Drupal\block\Entity\Block $block */
     foreach ($blocks as $block) {
       $config = $block->getVisibilityCondition('condition_group')
@@ -96,7 +99,7 @@ class BlockVisibilityGroupDeleteForm extends EntityConfirmFormBase {
    * @return array
    *   The blocks for the group.
    */
-  protected function getBlocksForGroup() {
+  protected function getBlocksForGroup(): array {
     /** @var \Drupal\block\Entity\Block[] $all_blocks */
     $all_blocks = $this->blockStorage()->loadMultiple();
     $group_blocks = [];
@@ -114,7 +117,7 @@ class BlockVisibilityGroupDeleteForm extends EntityConfirmFormBase {
    * @return \Drupal\Core\Entity\EntityStorageInterface
    *   Gets the block storage.
    */
-  protected function blockStorage() {
+  protected function blockStorage(): EntityStorageInterface {
     return $this->entityTypeManager->getStorage('block');
   }
 

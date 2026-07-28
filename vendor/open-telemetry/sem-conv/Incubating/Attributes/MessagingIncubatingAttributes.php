@@ -226,18 +226,6 @@ interface MessagingIncubatingAttributes
     public const MESSAGING_OPERATION_TYPE_VALUE_SETTLE = 'settle';
 
     /**
-     * Deprecated. Use `process` instead.
-     * @experimental
-     */
-    public const MESSAGING_OPERATION_TYPE_VALUE_DELIVER = 'deliver';
-
-    /**
-     * Deprecated. Use `send` instead.
-     * @experimental
-     */
-    public const MESSAGING_OPERATION_TYPE_VALUE_PUBLISH = 'publish';
-
-    /**
      * RabbitMQ message routing key.
      *
      * @experimental
@@ -401,6 +389,12 @@ interface MessagingIncubatingAttributes
      * @experimental
      */
     public const MESSAGING_SYSTEM_VALUE_ACTIVEMQ = 'activemq';
+
+    /**
+     * Amazon Simple Notification Service (SNS)
+     * @experimental
+     */
+    public const MESSAGING_SYSTEM_VALUE_AWS_SNS = 'aws.sns';
 
     /**
      * Amazon Simple Queue Service (SQS)

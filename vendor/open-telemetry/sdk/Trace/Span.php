@@ -6,6 +6,7 @@ namespace OpenTelemetry\SDK\Trace;
 
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\API\Common\Time\Clock;
+use OpenTelemetry\API\Metrics\UpDownCounterInterface;
 use OpenTelemetry\API\Trace as API;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\Context\ContextInterface;
@@ -14,6 +15,9 @@ use OpenTelemetry\SDK\Common\Dev\Compatibility\Util as BcUtil;
 use OpenTelemetry\SDK\Common\Exception\StackTraceFormatter;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Trace\SpanSuppression\NoopSuppressionStrategy\NoopSuppression;
+use OpenTelemetry\SDK\Trace\SpanSuppression\SpanSuppression;
+use OpenTelemetry\SemConv\Incubating\Attributes\OtelIncubatingAttributes;
 use Throwable;
 
 final class Span extends API\Span implements ReadWriteSpanInterface
@@ -24,8 +28,9 @@ final class Span extends API\Span implements ReadWriteSpanInterface
     private array $events = [];
     private int $totalRecordedEvents = 0;
     private StatusDataInterface $status;
-    private int $endEpochNanos = 0;
+    private ?int $endEpochNanos = null;
     private bool $hasEnded = false;
+    private readonly ?UpDownCounterInterface $spanLiveCounter;
 
     /**
      * @param non-empty-string $name
@@ -44,8 +49,11 @@ final class Span extends API\Span implements ReadWriteSpanInterface
         private array $links,
         private int $totalRecordedLinks,
         private readonly int $startEpochNanos,
+        private readonly SpanSuppression $spanSuppression,
+        ?UpDownCounterInterface $spanLiveCounter = null,
     ) {
         $this->status = StatusData::unset();
+        $this->spanLiveCounter = $spanLiveCounter;
     }
 
     /**
@@ -73,6 +81,8 @@ final class Span extends API\Span implements ReadWriteSpanInterface
         array $links,
         int $totalRecordedLinks,
         int $startEpochNanos,
+        SpanSuppression $spanSuppression = new NoopSuppression(),
+        ?UpDownCounterInterface $spanLiveCounter = null,
     ): self {
         $span = new self(
             $name,
@@ -86,8 +96,13 @@ final class Span extends API\Span implements ReadWriteSpanInterface
             $attributesBuilder,
             $links,
             $totalRecordedLinks,
-            $startEpochNanos !== 0 ? $startEpochNanos : Clock::getDefault()->now()
+            $startEpochNanos !== 0 ? $startEpochNanos : Clock::getDefault()->now(),
+            $spanSuppression,
+            $spanLiveCounter,
         );
+
+        $samplingResultAttr = $context->isSampled() ? OtelIncubatingAttributes::OTEL_SPAN_SAMPLING_RESULT_VALUE_RECORD_AND_SAMPLE : OtelIncubatingAttributes::OTEL_SPAN_SAMPLING_RESULT_VALUE_RECORD_ONLY;
+        $spanLiveCounter?->add(1, [OtelIncubatingAttributes::OTEL_SPAN_SAMPLING_RESULT => $samplingResultAttr]);
 
         // Call onStart here to ensure the span is fully initialized.
         $spanProcessor->onStart($span, $parentContext);
@@ -109,6 +124,12 @@ final class Span extends API\Span implements ReadWriteSpanInterface
         );
 
         return StackTraceFormatter::format($e);
+    }
+
+    #[\Override]
+    public function storeInContext(ContextInterface $context): ContextInterface
+    {
+        return $this->spanSuppression->suppress(parent::storeInContext($context));
     }
 
     /** @inheritDoc */
@@ -142,6 +163,10 @@ final class Span extends API\Span implements ReadWriteSpanInterface
     #[\Override]
     public function setAttributes(iterable $attributes): self
     {
+        if ($this->hasEnded) {
+            return $this;
+        }
+
         foreach ($attributes as $key => $value) {
             $this->attributesBuilder[$key] = $value;
         }
@@ -257,16 +282,23 @@ final class Span extends API\Span implements ReadWriteSpanInterface
     #[\Override]
     public function end(?int $endEpochNanos = null): void
     {
-        if ($this->hasEnded) {
+        if ($this->endEpochNanos !== null) {
             return;
         }
 
         $this->endEpochNanos = $endEpochNanos ?? Clock::getDefault()->now();
-        $this->hasEnded = true;
+        $span = clone $this;
+        $this->hasEnded = true; // prevent further modifications to the span by async code
+        if ($this->spanProcessor instanceof ExtendedSpanProcessorInterface) {
+            $this->spanProcessor->onEnding($span);
+        }
+        $span->hasEnded = true;
 
-        $this->checkForDroppedElements();
+        $samplingResultAttr = $this->context->isSampled() ? OtelIncubatingAttributes::OTEL_SPAN_SAMPLING_RESULT_VALUE_RECORD_AND_SAMPLE : OtelIncubatingAttributes::OTEL_SPAN_SAMPLING_RESULT_VALUE_RECORD_ONLY;
+        $this->spanLiveCounter?->add(-1, [OtelIncubatingAttributes::OTEL_SPAN_SAMPLING_RESULT => $samplingResultAttr]);
 
-        $this->spanProcessor->onEnd($this);
+        $this->spanProcessor->onEnd($span);
+        $span->checkForDroppedElements();
     }
 
     /** @inheritDoc */
@@ -306,7 +338,7 @@ final class Span extends API\Span implements ReadWriteSpanInterface
             $this->totalRecordedLinks,
             $this->totalRecordedEvents,
             $this->status,
-            $this->endEpochNanos,
+            $this->endEpochNanos ?? 0,
             $this->hasEnded
         );
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\SDK\Trace;
 
 use function is_array;
+use OpenTelemetry\API\Metrics\MeterProviderInterface;
 use OpenTelemetry\API\Trace as API;
 use OpenTelemetry\API\Trace\NoopTracer;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -16,6 +17,8 @@ use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOnSampler;
 use OpenTelemetry\SDK\Trace\Sampler\ParentBased;
+use OpenTelemetry\SDK\Trace\SpanSuppression\NoopSuppressionStrategy\NoopSuppressionStrategy;
+use OpenTelemetry\SDK\Trace\SpanSuppression\SpanSuppressionStrategy;
 use WeakMap;
 
 final class TracerProvider implements TracerProviderInterface
@@ -33,6 +36,8 @@ final class TracerProvider implements TracerProviderInterface
         ?IdGeneratorInterface $idGenerator = null,
         ?InstrumentationScopeFactoryInterface $instrumentationScopeFactory = null,
         private ?Configurator $configurator = null,
+        private readonly SpanSuppressionStrategy $spanSuppressionStrategy = new NoopSuppressionStrategy(),
+        ?MeterProviderInterface $meterProvider = null,
     ) {
         $spanProcessors ??= [];
         $spanProcessors = is_array($spanProcessors) ? $spanProcessors : [$spanProcessors];
@@ -46,7 +51,8 @@ final class TracerProvider implements TracerProviderInterface
             $resource,
             $spanLimits,
             $sampler,
-            $spanProcessors
+            $spanProcessors,
+            $meterProvider,
         );
         $this->instrumentationScopeFactory = $instrumentationScopeFactory ?? new InstrumentationScopeFactory(Attributes::factory());
         $this->tracers = new WeakMap();
@@ -77,6 +83,7 @@ final class TracerProvider implements TracerProviderInterface
             $this->tracerSharedState,
             $scope,
             $this->configurator,
+            $this->spanSuppressionStrategy->getSuppressor($name, $version, $schemaUrl),
         );
         $this->tracers->offsetSet($tracer, null);
 

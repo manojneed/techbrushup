@@ -4,6 +4,7 @@ namespace Drupal\block_visibility_groups\Form;
 
 use Drupal\Core\Condition\ConditionManager;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -43,7 +44,7 @@ class ConditionAddForm extends ConditionFormBase {
   /**
    * {@inheritdoc}
    */
-  public function getFormId() {
+  public function getFormId(): string {
     return 'block_visibility_group_condition_add_form';
   }
 
@@ -58,14 +59,14 @@ class ConditionAddForm extends ConditionFormBase {
   /**
    * {@inheritdoc}
    */
-  protected function submitButtonText() {
+  protected function submitButtonText(): string {
     return $this->t('Add condition');
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function submitMessageText() {
+  protected function submitMessageText(): TranslatableMarkup {
     return $this->t('The %label condition has been added.', ['%label' => $this->condition->getPluginDefinition()['label']]);
   }
 

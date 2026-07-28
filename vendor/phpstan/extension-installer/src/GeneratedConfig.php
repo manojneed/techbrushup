@@ -12,7 +12,7 @@ final class GeneratedConfig
 	public const EXTENSIONS = array (
   'composer/composer' => 
   array (
-    'install_path' => 'D:\\techbrushup\\vendor/composer/composer',
+    'install_path' => '/var/www/html/vendor/composer/composer',
     'relative_install_path' => '../../../composer/composer',
     'extra' => 
     array (
@@ -21,12 +21,12 @@ final class GeneratedConfig
         0 => 'phpstan/rules.neon',
       ),
     ),
-    'version' => '2.8.11',
+    'version' => '2.10.2',
     'phpstanVersionConstraint' => NULL,
   ),
   'composer/pcre' => 
   array (
-    'install_path' => 'D:\\techbrushup\\vendor/composer/pcre',
+    'install_path' => '/var/www/html/vendor/composer/pcre',
     'relative_install_path' => '../../../composer/pcre',
     'extra' => 
     array (
@@ -35,12 +35,12 @@ final class GeneratedConfig
         0 => 'extension.neon',
       ),
     ),
-    'version' => '3.3.2',
+    'version' => '3.4.0',
     'phpstanVersionConstraint' => NULL,
   ),
   'mglaman/phpstan-drupal' => 
   array (
-    'install_path' => 'D:\\techbrushup\\vendor/mglaman/phpstan-drupal',
+    'install_path' => '/var/www/html/vendor/mglaman/phpstan-drupal',
     'relative_install_path' => '../../../mglaman/phpstan-drupal',
     'extra' => 
     array (
@@ -50,12 +50,12 @@ final class GeneratedConfig
         1 => 'rules.neon',
       ),
     ),
-    'version' => '2.0.9',
+    'version' => '2.1.1',
     'phpstanVersionConstraint' => '>=2.1.0.0-dev, <3.0.0.0-dev',
   ),
   'phpstan/phpstan-deprecation-rules' => 
   array (
-    'install_path' => 'D:\\techbrushup\\vendor/phpstan/phpstan-deprecation-rules',
+    'install_path' => '/var/www/html/vendor/phpstan/phpstan-deprecation-rules',
     'relative_install_path' => '../../phpstan-deprecation-rules',
     'extra' => 
     array (
@@ -64,12 +64,12 @@ final class GeneratedConfig
         0 => 'rules.neon',
       ),
     ),
-    'version' => '2.0.3',
-    'phpstanVersionConstraint' => '>=2.1.15.0-dev, <3.0.0.0-dev',
+    'version' => '2.0.5',
+    'phpstanVersionConstraint' => '>=2.1.39.0-dev, <3.0.0.0-dev',
   ),
   'phpstan/phpstan-phpunit' => 
   array (
-    'install_path' => 'D:\\techbrushup\\vendor/phpstan/phpstan-phpunit',
+    'install_path' => '/var/www/html/vendor/phpstan/phpstan-phpunit',
     'relative_install_path' => '../../phpstan-phpunit',
     'extra' => 
     array (
@@ -79,8 +79,8 @@ final class GeneratedConfig
         1 => 'rules.neon',
       ),
     ),
-    'version' => '2.0.7',
-    'phpstanVersionConstraint' => '>=2.1.18.0-dev, <3.0.0.0-dev',
+    'version' => '2.0.18',
+    'phpstanVersionConstraint' => '>=2.2.3.0-dev, <3.0.0.0-dev',
   ),
 );
 
@@ -88,7 +88,7 @@ final class GeneratedConfig
 );
 
 	/** @var string|null */
-	public const PHPSTAN_VERSION_CONSTRAINT = '>=2.1.18.0-dev, <3.0.0.0-dev';
+	public const PHPSTAN_VERSION_CONSTRAINT = '>=2.2.3.0-dev, <3.0.0.0-dev';
 
 	private function __construct()
 	{

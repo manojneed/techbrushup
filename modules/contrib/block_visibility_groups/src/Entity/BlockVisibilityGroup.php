@@ -3,7 +3,9 @@
 namespace Drupal\block_visibility_groups\Entity;
 
 use Drupal\block_visibility_groups\BlockVisibilityGroupInterface;
+use Drupal\Component\Plugin\LazyPluginCollection;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Condition\ConditionInterface;
 use Drupal\Core\Condition\ConditionPluginCollection;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 
@@ -49,19 +51,27 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  * )
  */
 class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGroupInterface {
+
   /**
    * The Block Visibility Group ID.
    *
-   * @var string
+   * @var ?string
    */
-  protected $id;
+  protected ?string $id = NULL;
+
+  /**
+   * The Block Visibility Group label.
+   *
+   * @var ?string
+   */
+  protected ?string $label = NULL;
 
   /**
    * Whether other conditions are allowed in the group.
    *
    * @var bool
    */
-  protected $allow_other_conditions;
+  protected bool $allow_other_conditions = FALSE;
 
   /**
    * Whether other conditions are allowed in the group.
@@ -69,7 +79,7 @@ class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGr
    * @return bool
    *   True if conditions are allowed.
    */
-  public function isAllowOtherConditions() {
+  public function isAllowOtherConditions(): bool {
     return $this->allow_other_conditions;
   }
 
@@ -79,39 +89,23 @@ class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGr
    * @param bool $allow_other_conditions
    *   Whether other conditions should be allowed.
    */
-  public function setAllowOtherConditions($allow_other_conditions) {
+  public function setAllowOtherConditions(bool $allow_other_conditions): void {
     $this->allow_other_conditions = $allow_other_conditions;
   }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getPluginCollections() {
-    return [
-      'conditions' => $this->getConditions(),
-    ];
-  }
-
-  /**
-   * The Block Visibility Group label.
-   *
-   * @var string
-   */
-  protected $label;
 
   /**
    * The configuration of conditions.
    *
    * @var array
    */
-  protected $conditions = [];
+  protected array $conditions = [];
 
   /**
    * Tracks the logic used to compute, either 'and' or 'or'.
    *
    * @var string
    */
-  protected $logic = 'and';
+  protected string $logic = 'and';
 
   /**
    * Gets logic used to compute, either 'and' or 'or'.
@@ -119,7 +113,7 @@ class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGr
    * @return string
    *   Either 'and' or 'or'.
    */
-  public function getLogic() {
+  public function getLogic(): string {
     return $this->logic;
   }
 
@@ -129,41 +123,62 @@ class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGr
    * @param string $logic
    *   Either 'and' or 'or'.
    */
-  public function setLogic($logic) {
+  public function setLogic(string $logic): void {
     $this->logic = $logic;
   }
 
   /**
    * The plugin collection that holds the conditions.
    *
-   * @var \Drupal\Component\Plugin\LazyPluginCollection
+   * @var \Drupal\Component\Plugin\LazyPluginCollection|null
    */
-  protected $conditionCollection;
+  protected ?LazyPluginCollection $conditionCollection = NULL;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPluginCollections(): array {
+    return [
+      'conditions' => $this->getConditions(),
+    ];
+  }
 
   /**
    * Returns the conditions.
    *
-   * @return \Drupal\Core\Condition\ConditionInterface[]|\Drupal\Core\Condition\ConditionPluginCollection
+   * @return \Drupal\Core\Condition\ConditionPluginCollection
    *   An array of configured condition plugins.
    */
-  public function getConditions() {
-    if (!$this->conditionCollection) {
+  public function getConditions(): ConditionPluginCollection {
+    if (!isset($this->conditionCollection)) {
       $this->conditionCollection = new ConditionPluginCollection(\Drupal::service('plugin.manager.condition'), $this->get('conditions'));
     }
     return $this->conditionCollection;
   }
 
   /**
-   * {@inheritdoc}
+   * Returns a condition by its ID.
+   *
+   * @param string $condition_id
+   *   The id of the condition to return.
+   *
+   * @return \Drupal\Core\Condition\ConditionInterface
+   *   The condition plugin.
    */
-  public function getCondition($condition_id) {
+  public function getCondition(string $condition_id): ConditionInterface {
     return $this->getConditions()->get($condition_id);
   }
 
   /**
-   * {@inheritdoc}
+   * Adds a condition to the group.
+   *
+   * @param array $configuration
+   *   A configuration condition to add to the entity.
+   *
+   * @return string
+   *   The condition uuid.
    */
-  public function addCondition(array $configuration) {
+  public function addCondition(array $configuration): string {
     $configuration['uuid'] = $this->uuidGenerator()->generate();
     $this->getConditions()
       ->addInstanceId($configuration['uuid'], $configuration);
@@ -171,9 +186,14 @@ class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGr
   }
 
   /**
-   * {@inheritdoc}
+   * Remove a condition from the group.
+   *
+   * @param string $condition_id
+   *   The condition ID to remove.
+   *
+   * @return $this
    */
-  public function removeCondition($condition_id) {
+  public function removeCondition(string $condition_id): static {
     $this->getConditions()->removeInstanceId($condition_id);
     return $this;
   }
@@ -181,7 +201,7 @@ class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGr
   /**
    * {@inheritdoc}
    */
-  public function getCacheTags() {
+  public function getCacheTags(): array {
     $tags = parent::getCacheTags();
     foreach ($this->getConditions() as $condition) {
       $tags = Cache::mergeTags($tags, $condition->getCacheTags());
@@ -192,7 +212,7 @@ class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGr
   /**
    * {@inheritdoc}
    */
-  public function getCacheContexts() {
+  public function getCacheContexts(): array {
     $contexts = parent::getCacheContexts();
     foreach ($this->getConditions() as $condition) {
       $contexts = Cache::mergeContexts($contexts, $condition->getCacheContexts());
@@ -203,7 +223,7 @@ class BlockVisibilityGroup extends ConfigEntityBase implements BlockVisibilityGr
   /**
    * {@inheritdoc}
    */
-  public function getCacheMaxAge() {
+  public function getCacheMaxAge(): int {
     $age = parent::getCacheMaxAge();
     foreach ($this->getConditions() as $condition) {
       $age = Cache::mergeMaxAges($age, $condition->getCacheMaxAge());

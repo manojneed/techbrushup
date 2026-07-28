@@ -13,10 +13,13 @@ trait BlockVisibilityLister {
   /**
    * Get labels for groups.
    *
+   * @param \Drupal\Core\Entity\EntityStorageInterface $storage
+   *   The entity storage.
+   *
    * @return array
-   *   The list of labels.
+   *   The list of labels keyed by entity ID.
    */
-  protected function getBlockVisibilityLabels(EntityStorageInterface $storage) {
+  protected function getBlockVisibilityLabels(EntityStorageInterface $storage): array {
     $block_visibility_groups = $storage->loadMultiple();
     $labels = [];
     foreach ($block_visibility_groups as $type) {
@@ -32,19 +35,16 @@ trait BlockVisibilityLister {
    *   The block instance.
    *
    * @return string
-   *   The config group name.
+   *   The config group name, or empty string if not set.
    */
-  protected function getGroupForBlock(Block $block) {
-    /** @var ConditionPluginCollection $conditions */
+  protected function getGroupForBlock(Block $block): string {
     $conditions = $block->getVisibilityConditions();
-    $config_block_visibility_group = '';
     if ($conditions->has('condition_group')) {
       $condition_config = $conditions->get('condition_group')
         ->getConfiguration();
-      $config_block_visibility_group = $condition_config['block_visibility_group'];
-      return $config_block_visibility_group;
+      return $condition_config['block_visibility_group'] ?? '';
     }
-    return $config_block_visibility_group;
+    return '';
   }
 
 }

@@ -2,6 +2,7 @@
 
 namespace PHPStan\Rules\PHPUnit;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\Expr\ClassConstFetch;
@@ -10,6 +11,7 @@ use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\NodeFinder;
 use PHPStan\Analyser\Scope;
+use PHPStan\BetterReflection\Reflection\ReflectionMethod;
 use PHPStan\Parser\Parser;
 use PHPStan\PhpDoc\ResolvedPhpDocBlock;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
@@ -28,86 +30,45 @@ use function sprintf;
 class DataProviderHelper
 {
 
-	/**
-	 * Reflection provider.
-	 *
-	 */
 	private ReflectionProvider $reflectionProvider;
 
-	/**
-	 * The file type mapper.
-	 *
-	 */
 	private FileTypeMapper $fileTypeMapper;
 
 	private Parser $parser;
 
-	private bool $phpunit10OrNewer;
+	private PHPUnitVersion $PHPUnitVersion;
 
 	public function __construct(
 		ReflectionProvider $reflectionProvider,
 		FileTypeMapper $fileTypeMapper,
 		Parser $parser,
-		bool $phpunit10OrNewer
+		PHPUnitVersion $PHPUnitVersion
 	)
 	{
 		$this->reflectionProvider = $reflectionProvider;
 		$this->fileTypeMapper = $fileTypeMapper;
 		$this->parser = $parser;
-		$this->phpunit10OrNewer = $phpunit10OrNewer;
+		$this->PHPUnitVersion = $PHPUnitVersion;
 	}
 
 	/**
+	 * @param ReflectionMethod|ClassMethod $testMethod
+	 *
 	 * @return iterable<array{ClassReflection|null, string, int}>
 	 */
 	public function getDataProviderMethods(
 		Scope $scope,
-		ClassMethod $node,
+		$testMethod,
 		ClassReflection $classReflection
 	): iterable
 	{
-		$docComment = $node->getDocComment();
-		if ($docComment !== null) {
-			$methodPhpDoc = $this->fileTypeMapper->getResolvedPhpDoc(
-				$scope->getFile(),
-				$classReflection->getName(),
-				$scope->isInTrait() ? $scope->getTraitReflection()->getName() : null,
-				$node->name->toString(),
-				$docComment->getText(),
-			);
-			foreach ($this->getDataProviderAnnotations($methodPhpDoc) as $annotation) {
-				$dataProviderValue = $this->getDataProviderAnnotationValue($annotation);
-				if ($dataProviderValue === null) {
-					// Missing value is already handled in NoMissingSpaceInMethodAnnotationRule
-					continue;
-				}
+		yield from $this->yieldDataProviderAnnotations($testMethod, $scope, $classReflection);
 
-				$dataProviderMethod = $this->parseDataProviderAnnotationValue($scope, $dataProviderValue);
-				$dataProviderMethod[] = $node->getStartLine();
-
-				yield $dataProviderValue => $dataProviderMethod;
-			}
-		}
-
-		if (!$this->phpunit10OrNewer) {
+		if (!$this->PHPUnitVersion->supportsDataProviderAttribute()->yes()) {
 			return;
 		}
 
-		foreach ($node->attrGroups as $attrGroup) {
-			foreach ($attrGroup->attrs as $attr) {
-				$dataProviderMethod = null;
-				if ($attr->name->toLowerString() === 'phpunit\\framework\\attributes\\dataprovider') {
-					$dataProviderMethod = $this->parseDataProviderAttribute($attr, $classReflection);
-				} elseif ($attr->name->toLowerString() === 'phpunit\\framework\\attributes\\dataproviderexternal') {
-					$dataProviderMethod = $this->parseDataProviderExternalAttribute($attr);
-				}
-				if ($dataProviderMethod === null) {
-					continue;
-				}
-
-				yield from $dataProviderMethod;
-			}
-		}
+		yield from $this->yieldDataProviderAttributes($testMethod, $classReflection);
 	}
 
 	/**
@@ -194,7 +155,11 @@ class DataProviderHelper
 				->build();
 		}
 
-		if ($deprecationRulesInstalled && $this->phpunit10OrNewer && !$dataProviderMethodReflection->isStatic()) {
+		if (
+			$deprecationRulesInstalled
+			&& $this->PHPUnitVersion->requiresStaticDataProviders()->yes()
+			&& !$dataProviderMethodReflection->isStatic()
+		) {
 			$errorBuilder = RuleErrorBuilder::message(sprintf(
 				'@dataProvider %s related method must be static in PHPUnit 10 and newer.',
 				$dataProviderValue,
@@ -285,7 +250,7 @@ class DataProviderHelper
 	}
 
 	/**
-	 * @return array<string, array{(ClassReflection|null), string, int}>|null
+	 * @return array<string, array{ClassReflection, string, int}>|null
 	 */
 	private function parseDataProviderAttribute(Attribute $attribute, ClassReflection $classReflection): ?array
 	{
@@ -304,6 +269,81 @@ class DataProviderHelper
 				$attribute->getStartLine(),
 			],
 		];
+	}
+
+	/**
+	 * @param ReflectionMethod|ClassMethod $node
+	 *
+	 * @return iterable<array{ClassReflection|null, string, int}>
+	 */
+	private function yieldDataProviderAttributes($node, ClassReflection $classReflection): iterable
+	{
+		if (
+			$node instanceof ReflectionMethod
+		) {
+			foreach ($node->getAttributesByName('PHPUnit\Framework\Attributes\DataProvider') as $attr) {
+				$args = $attr->getArguments();
+				if (count($args) !== 1) {
+					continue;
+				}
+
+				$startLine = $node->getStartLine();
+
+				yield [$classReflection, $args[0], $startLine];
+			}
+
+			return;
+		}
+
+		foreach ($node->attrGroups as $attrGroup) {
+			foreach ($attrGroup->attrs as $attr) {
+				$dataProviderMethod = null;
+				if ($attr->name->toLowerString() === 'phpunit\\framework\\attributes\\dataprovider') {
+					$dataProviderMethod = $this->parseDataProviderAttribute($attr, $classReflection);
+				} elseif ($attr->name->toLowerString() === 'phpunit\\framework\\attributes\\dataproviderexternal') {
+					$dataProviderMethod = $this->parseDataProviderExternalAttribute($attr);
+				}
+				if ($dataProviderMethod === null) {
+					continue;
+				}
+
+				yield from $dataProviderMethod;
+			}
+		}
+	}
+
+	/**
+	 * @param ReflectionMethod|ClassMethod $node
+	 *
+	 * @return iterable<array{ClassReflection|null, string, int}>
+	 */
+	private function yieldDataProviderAnnotations($node, Scope $scope, ClassReflection $classReflection): iterable
+	{
+		$docComment = $node->getDocComment();
+		if ($docComment === null) {
+			return;
+		}
+
+		$methodPhpDoc = $this->fileTypeMapper->getResolvedPhpDoc(
+			$scope->getFile(),
+			$classReflection->getName(),
+			$scope->isInTrait() ? $scope->getTraitReflection()->getName() : null,
+			$node instanceof ClassMethod ? $node->name->toString() : $node->getName(),
+			$docComment instanceof Doc ? $docComment->getText() : $docComment,
+		);
+		foreach ($this->getDataProviderAnnotations($methodPhpDoc) as $annotation) {
+			$dataProviderValue = $this->getDataProviderAnnotationValue($annotation);
+			if ($dataProviderValue === null) {
+				// Missing value is already handled in NoMissingSpaceInMethodAnnotationRule
+				continue;
+			}
+
+			$startLine = $node->getStartLine();
+			$dataProviderMethod = $this->parseDataProviderAnnotationValue($scope, $dataProviderValue);
+			$dataProviderMethod[] = $startLine;
+
+			yield $dataProviderValue => $dataProviderMethod;
+		}
 	}
 
 }

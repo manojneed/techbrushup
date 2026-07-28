@@ -8,7 +8,7 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Url;
 
 /**
- *
+ * Provides a form element for displaying and managing conditions.
  */
 trait ConditionsSetFormTrait {
 
@@ -19,11 +19,13 @@ trait ConditionsSetFormTrait {
    *   The form array.
    * @param \Drupal\block_visibility_groups\Entity\BlockVisibilityGroup $block_visibility_group
    *   The BlockVisibilityGroup instance.
+   * @param string $redirect
+   *   The redirect target ('edit' or 'layout').
    *
    * @return array
    *   The conditions section form renderable array.
    */
-  protected function createConditionsSet(array $form, BlockVisibilityGroup $block_visibility_group, $redirect = 'edit') {
+  protected function createConditionsSet(array $form, BlockVisibilityGroup $block_visibility_group, string $redirect = 'edit'): array {
     $attributes = [
       'class' => ['use-ajax'],
       'data-dialog-type' => 'modal',

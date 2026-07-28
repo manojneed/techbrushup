@@ -5,7 +5,7 @@ core_version_requirement: ^11.2
 dependencies:
   - drupal:system (>=11.2)
 
-# Information added by Drupal.org packaging script on 2026-04-24
-version: '4.0.0-alpha2'
+# Information added by Drupal.org packaging script on 2026-07-13
+version: '4.0.0-alpha4'
 project: 'twig_tweak'
-datestamp: 1777034138
+datestamp: 1783933172

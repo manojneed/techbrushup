@@ -43,3 +43,7 @@ services:
 
   twig_tweak.cache_metadata_extractor:
     class: Drupal\twig_tweak\CacheMetadataExtractor
+
+  Twig\Environment: '@twig'
+  Drupal\twig_tweak\Command\SignatureFormatter:
+    class: Drupal\twig_tweak\Command\SignatureFormatter

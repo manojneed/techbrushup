@@ -16,6 +16,10 @@
         "twig/twig": "^3.21"
     },
     "suggest": {
-        "symfony/var-dumper": "Better dump() function for debugging Twig variables"
+        "symfony/var-dumper": "Better dump() function for debugging Twig variables",
+        "drush/drush": "Required for Drush commands (twig-tweak:debug:*). Version 12 or later."
+    },
+    "conflict": {
+        "drush/drush": "<12.0.0"
     }
 }

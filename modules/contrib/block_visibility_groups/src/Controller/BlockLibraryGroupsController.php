@@ -14,7 +14,7 @@ class BlockLibraryGroupsController extends BlockLibraryController {
   /**
    * {@inheritdoc}
    */
-  public function listBlocks(Request $request, $theme, BlockVisibilityGroup $block_visibility_group = NULL) {
+  public function listBlocks(Request $request, $theme, ?BlockVisibilityGroup $block_visibility_group = NULL): array {
     $list = parent::listBlocks($request, $theme);
     if ($block_visibility_group) {
       foreach ($list['blocks']['#rows'] as &$row) {

@@ -17,7 +17,7 @@ trait ConditionRedirectTrait {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
-  protected function setConditionRedirect(FormStateInterface $form_state) {
+  protected function setConditionRedirect(FormStateInterface $form_state): void {
     $redirect = $form_state->getValue('bvg_redirect');
     if ($redirect == 'edit') {
       $form_state->setRedirectUrl($this->block_visibility_group->toUrl('edit-form'));
@@ -41,10 +41,10 @@ trait ConditionRedirectTrait {
    *
    * @param array $form
    *   The form array.
-   * @param string $redirect
+   * @param string|null $redirect
    *   The redirect option: layout, edit, or null.
    */
-  protected function setRedirectValue(array &$form, $redirect) {
+  protected function setRedirectValue(array &$form, ?string $redirect): void {
     $form['bvg_redirect'] = [
       '#type' => 'value',
       '#value' => $redirect,

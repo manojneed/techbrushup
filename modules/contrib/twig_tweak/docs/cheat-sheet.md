@@ -233,6 +233,20 @@ See Drupal\Core\Utility\Token::replace()
 {% endapply %}
 ```
 
+## Token Replace Plain
+Use `token_replace_plain` when token values must remain as plain text (for
+example inside HTML attributes, plain-text email subjects, or meta tags).
+Unlike `token_replace`, it does not HTML-encode ampersands and other special
+characters in the replaced values.
+```twig
+{# Safe for an attribute value. #}
+<a href="/contact" title="{{ 'Contact [site:name]'|token_replace_plain }}">Contact</a>
+```
+**Important (Security):**
+The output of this filter is plain text. Do **NEVER combine it with the `|raw`
+filter** when printing inside an HTML context — Twig's autoescape is what keeps
+the output safe to render!
+
 ## Preg Replace
 ```twig
 {{ 'Drupal - community plumbing!'|preg_replace('/(Drupal)/', '<b>$1</b>') }}

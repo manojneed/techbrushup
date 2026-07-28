@@ -16,6 +16,10 @@ class RelativeReferenceValidator
         }
 
         // Additional checks for invalid cases
+        if (strpos($ref, '\\') !== false) {
+            return false; // Backslashes are not allowed in URI references
+        }
+
         if (preg_match('/^(http|https):\/\//', $ref)) {
             return false; // Absolute URI
         }
@@ -38,14 +42,6 @@ class RelativeReferenceValidator
 
         if (preg_match('/\s/', $ref)) {
             return false; // Spaces are not allowed in URIs
-        }
-
-        if (preg_match('/^\?#|^#$/', $ref)) {
-            return false; // Missing path but having query and fragment
-        }
-
-        if ($ref === '#' || $ref === '?') {
-            return false; // Missing path and having only fragment or query
         }
 
         return true;

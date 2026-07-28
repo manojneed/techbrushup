@@ -11,6 +11,7 @@
     "source": "https://git.drupalcode.org/project/block_visibility_groups"
   },
   "require": {
-    "drupal/core": "^9 || ^10 || ^11"
+    "drupal/core": "^10.3 || ^11",
+    "php": ">=8.3"
   }
 }

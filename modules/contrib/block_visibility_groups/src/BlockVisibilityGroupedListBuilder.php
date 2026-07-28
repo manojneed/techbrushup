@@ -8,9 +8,9 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormBuilderInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\State\StateInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -37,14 +37,14 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected $group_storage;
+  protected EntityStorageInterface $groupStorage;
 
   /**
    * The state service.
    *
    * @var \Drupal\Core\State\StateInterface
    */
-  protected $state;
+  protected StateInterface $state;
 
   /**
    * Constructs a new BlockVisibilityGroupedListBuilder object.
@@ -67,7 +67,7 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
   public function __construct(EntityTypeInterface $entity_type, EntityStorageInterface $storage, ThemeManagerInterface $theme_manager, FormBuilderInterface $form_builder, EntityStorageInterface $block_visibility_group_storage, StateInterface $state, MessengerInterface $messenger) {
     parent::__construct($entity_type, $storage, $theme_manager, $form_builder, $messenger);
 
-    $this->group_storage = $block_visibility_group_storage;
+    $this->groupStorage = $block_visibility_group_storage;
     $this->state = $state;
   }
 
@@ -143,7 +143,7 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
         ];
 
         /** @var \Drupal\block_visibility_groups\Entity\BlockVisibilityGroup $group */
-        $group = $this->group_storage->load($current_block_visibility_group);
+        $group = $this->groupStorage->load($current_block_visibility_group);
         $form['block_visibility_group']['help'] = $this->createHelp($group);
 
         $conditions_element = $this->createConditionsSet($form, $group, 'layout');
@@ -180,9 +180,10 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
   /**
    * Get the group from the query string.
    *
-   * @return mixed|string
+   * @return string
+   *   The block visibility group ID or a constant value.
    */
-  protected function getCurrentBlockVisibilityGroup() {
+  protected function getCurrentBlockVisibilityGroup(): string {
     $request_id = $this->request->query->get('block_visibility_group');
     if (!$request_id) {
       $request_id = BlockVisibilityGroupedListBuilder::ALL_GROUP;
@@ -204,7 +205,7 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
       BlockVisibilityGroupedListBuilder::UNSET_GROUP => ['label' => $this->t('- Global blocks -')],
       BlockVisibilityGroupedListBuilder::ALL_GROUP => ['label' => $this->t('- All Blocks -')],
     ];
-    $block_visibility_group_labels = $this->getBlockVisibilityLabels($this->group_storage);
+    $block_visibility_group_labels = $this->getBlockVisibilityLabels($this->groupStorage);
     foreach ($block_visibility_group_labels as $id => $label) {
       $route_options[$id] = ['label' => $label];
     }
@@ -228,6 +229,15 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
    */
   protected function buildBlocksForm() {
     $form = parent::buildBlocksForm();
+
+    // Visually hide blocks not shown in this visibility group.
+    $entity_ids = $this->getEntityIds();
+    $group_entity_ids = $this->getGroupEntityIds();
+    foreach ($entity_ids as $entity_id) {
+      if (isset($form[$entity_id]) && !in_array($entity_id, $group_entity_ids)) {
+        $form[$entity_id]['#attributes']['class'][] = 'hidden';
+      }
+    }
     $show_global_in_group = $this->getShowGlobalWithGroup();
     if ($block_visibility_group = $this->getBlockVisibilityGroup(TRUE)) {
       foreach ($form as &$row_info) {
@@ -289,19 +299,17 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
   }
 
   /**
-   * {@inheritdoc}
-   *
-   * Unset blocks that should not be shown with current group.
+   * Loads entity IDs for blocks that should be shown with the current group.
    */
-  protected function getEntityIds() {
-    $entity_ids = parent::getEntityIds();
+  protected function getGroupEntityIds() {
+    $entity_ids = $this->getEntityIds();
     $current_block_visibility_group = $this->getCurrentBlockVisibilityGroup();
     $show_global_in_group = $this->getShowGlobalWithGroup();
     if (!empty($current_block_visibility_group)
       && $current_block_visibility_group != $this::ALL_GROUP
     ) {
       $entities = $this->storage->loadMultipleOverrideFree($entity_ids);
-      /** @var Block $block */
+      /** @var \Drupal\block\Entity\Block $block */
       foreach ($entities as $block) {
         $config_block_visibility_group = $this->getGroupForBlock($block);
 
@@ -327,7 +335,7 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
    *   TRUE if any groups exist.
    */
   protected function groupsExist() {
-    return !empty($this->group_storage->loadMultiple());
+    return !empty($this->groupStorage->loadMultiple());
   }
 
   /**
@@ -345,8 +353,8 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
     }
     $entities = $this->storage->loadMultipleOverrideFree($entity_ids);
     if (!empty($entities)) {
-      $labels = $this->getBlockVisibilityLabels($this->group_storage);
-      /** @var Block $block */
+      $labels = $this->getBlockVisibilityLabels($this->groupStorage);
+      /** @var \Drupal\block\Entity\Block $block */
       foreach ($entities as $block) {
         if (!empty($form[$block->id()])) {
           // Get visibility group label.
@@ -389,24 +397,23 @@ class BlockVisibilityGroupedListBuilder extends BlockListBuilder {
   /**
    * Determine if global(unset) blocks should be shown when viewing a group.
    *
-   * @return mixed
+   * @return bool
+   *   TRUE if global blocks should be shown.
    */
-  protected function getShowGlobalWithGroup() {
-    return $this->state->get('block_visibility_group_show_global', 1);
+  protected function getShowGlobalWithGroup(): bool {
+    return (bool) $this->state->get('block_visibility_group_show_global', 1);
   }
 
   /**
    * Create a help description.
    *
-   * @param array $form
-   *   The form array.
-   * @param $group
+   * @param \Drupal\block_visibility_groups\Entity\BlockVisibilityGroup $group
    *   The block visibility group instance.
    *
    * @return array
    *   A renderable array.
    */
-  protected function createHelp(BlockVisibilityGroup $group) {
+  protected function createHelp(BlockVisibilityGroup $group): array {
     $help = '<strong>' . $this->t('Currently viewing') . ': <em>' . $group->label() . '</em></strong>';
     if ($group->getLogic() == 'and') {
       $help .= '<p>' . $this->t('All conditions must pass.') . '</p>';

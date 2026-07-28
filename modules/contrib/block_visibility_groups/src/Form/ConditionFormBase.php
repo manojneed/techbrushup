@@ -4,6 +4,8 @@ namespace Drupal\block_visibility_groups\Form;
 
 use Drupal\block_visibility_groups\BlockVisibilityGroupInterface;
 use Drupal\block_visibility_groups\ConditionRedirectTrait;
+use Drupal\block_visibility_groups\Entity\BlockVisibilityGroup;
+use Drupal\Core\Condition\ConditionInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
@@ -26,26 +28,26 @@ abstract class ConditionFormBase extends FormBase {
    *
    * @var \Drupal\block_visibility_groups\Entity\BlockVisibilityGroup
    */
-  protected $block_visibility_group;
+  protected BlockVisibilityGroup $block_visibility_group;
 
   /**
    * The condition used by this form.
    *
    * @var \Drupal\Core\Condition\ConditionInterface
    */
-  protected $condition;
+  protected ConditionInterface $condition;
 
   /**
    * The context repository service.
    *
    * @var \Drupal\Core\Plugin\Context\ContextRepositoryInterface
    */
-  protected $contextRepository;
+  protected ContextRepositoryInterface $contextRepository;
 
   /**
    * ConditionFormBase constructor.
    *
-   * @param \Drupal\Core\Plugin\Context\ContextRepositoryInterface $contextRepository
+   * @param \Drupal\Core\Plugin\Context\ContextRepositoryInterface $context_repository
    */
   public function __construct(ContextRepositoryInterface $context_repository) {
     $this->contextRepository = $context_repository;
@@ -91,7 +93,7 @@ abstract class ConditionFormBase extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, BlockVisibilityGroupInterface $block_visibility_group = NULL, $condition_id = NULL, $redirect = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, ?BlockVisibilityGroupInterface $block_visibility_group = NULL, $condition_id = NULL, $redirect = NULL): array {
     $this->block_visibility_group = $block_visibility_group;
     $this->condition = $this->prepareCondition($condition_id);
 
@@ -117,7 +119,7 @@ abstract class ConditionFormBase extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
+  public function validateForm(array &$form, FormStateInterface $form_state): void {
     // Allow the condition to validate the form.
     $condition_values = (new FormState())->setValues($form_state->getValue('condition'));
     $this->condition->validateConfigurationForm($form, $condition_values);
@@ -128,7 +130,7 @@ abstract class ConditionFormBase extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
     // Allow the condition to submit the form.
     $condition_values = (new FormState())->setValues($form_state->getValue('condition'));
     $this->condition->submitConfigurationForm($form, $condition_values);

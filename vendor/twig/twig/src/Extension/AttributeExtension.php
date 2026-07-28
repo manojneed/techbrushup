@@ -95,16 +95,18 @@ final class AttributeExtension extends AbstractExtension
                     'needs_context' => $attribute->needsContext ?? false,
                     'needs_environment' => $attribute->needsEnvironment ?? $this->needsEnvironment($method),
                     'needs_charset' => $attribute->needsCharset ?? false,
+                    'needs_is_sandboxed' => $attribute->needsIsSandboxed ?? false,
                     'is_variadic' => $method->isVariadic(),
                     'is_safe' => $attribute->isSafe,
                     'is_safe_callback' => $attribute->isSafeCallback,
                     'pre_escape' => $attribute->preEscape,
                     'preserves_safety' => $attribute->preservesSafety,
+                    'always_allowed_in_sandbox' => $attribute->alwaysAllowedInSandbox ?? false,
                     'deprecation_info' => $attribute->deprecationInfo,
                 ]);
 
                 if ($callable->getMinimalNumberOfRequiredArguments() > $method->getNumberOfParameters()) {
-                    throw new \LogicException(sprintf('"%s::%s()" needs at least %d arguments to be used AsTwigFilter, but only %d defined.', $reflectionClass->getName(), $method->getName(), $callable->getMinimalNumberOfRequiredArguments(), $method->getNumberOfParameters()));
+                    throw new \LogicException(\sprintf('"%s::%s()" needs at least %d arguments to be used AsTwigFilter, but only %d defined.', $reflectionClass->getName(), $method->getName(), $callable->getMinimalNumberOfRequiredArguments(), $method->getNumberOfParameters()));
                 }
 
                 $filters[$attribute->name] = $callable;
@@ -118,21 +120,22 @@ final class AttributeExtension extends AbstractExtension
                     'needs_context' => $attribute->needsContext ?? false,
                     'needs_environment' => $attribute->needsEnvironment ?? $this->needsEnvironment($method),
                     'needs_charset' => $attribute->needsCharset ?? false,
+                    'needs_is_sandboxed' => $attribute->needsIsSandboxed ?? false,
                     'is_variadic' => $method->isVariadic(),
                     'is_safe' => $attribute->isSafe,
                     'is_safe_callback' => $attribute->isSafeCallback,
+                    'always_allowed_in_sandbox' => $attribute->alwaysAllowedInSandbox ?? false,
                     'deprecation_info' => $attribute->deprecationInfo,
                 ]);
 
                 if ($callable->getMinimalNumberOfRequiredArguments() > $method->getNumberOfParameters()) {
-                    throw new \LogicException(sprintf('"%s::%s()" needs at least %d arguments to be used AsTwigFunction, but only %d defined.', $reflectionClass->getName(), $method->getName(), $callable->getMinimalNumberOfRequiredArguments(), $method->getNumberOfParameters()));
+                    throw new \LogicException(\sprintf('"%s::%s()" needs at least %d arguments to be used AsTwigFunction, but only %d defined.', $reflectionClass->getName(), $method->getName(), $callable->getMinimalNumberOfRequiredArguments(), $method->getNumberOfParameters()));
                 }
 
                 $functions[$attribute->name] = $callable;
             }
 
             foreach ($method->getAttributes(AsTwigTest::class) as $reflectionAttribute) {
-
                 /** @var AsTwigTest $attribute */
                 $attribute = $reflectionAttribute->newInstance();
 
@@ -140,12 +143,14 @@ final class AttributeExtension extends AbstractExtension
                     'needs_context' => $attribute->needsContext ?? false,
                     'needs_environment' => $attribute->needsEnvironment ?? $this->needsEnvironment($method),
                     'needs_charset' => $attribute->needsCharset ?? false,
+                    'needs_is_sandboxed' => $attribute->needsIsSandboxed ?? false,
                     'is_variadic' => $method->isVariadic(),
+                    'always_allowed_in_sandbox' => $attribute->alwaysAllowedInSandbox ?? false,
                     'deprecation_info' => $attribute->deprecationInfo,
                 ]);
 
                 if ($callable->getMinimalNumberOfRequiredArguments() > $method->getNumberOfParameters()) {
-                    throw new \LogicException(sprintf('"%s::%s()" needs at least %d arguments to be used AsTwigTest, but only %d defined.', $reflectionClass->getName(), $method->getName(), $callable->getMinimalNumberOfRequiredArguments(), $method->getNumberOfParameters()));
+                    throw new \LogicException(\sprintf('"%s::%s()" needs at least %d arguments to be used AsTwigTest, but only %d defined.', $reflectionClass->getName(), $method->getName(), $callable->getMinimalNumberOfRequiredArguments(), $method->getNumberOfParameters()));
                 }
 
                 $tests[$attribute->name] = $callable;

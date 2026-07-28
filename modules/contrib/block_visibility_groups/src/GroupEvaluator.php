@@ -11,9 +11,7 @@ use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Plugin\ContextAwarePluginInterface;
 
 /**
- * Class ConditionEvaluator.
- *
- * @package Drupal\block_visibility_groups
+ * Evaluates block visibility group conditions.
  */
 class GroupEvaluator implements GroupEvaluatorInterface {
 
@@ -24,24 +22,29 @@ class GroupEvaluator implements GroupEvaluatorInterface {
    *
    * @var \Drupal\Core\Plugin\Context\ContextHandlerInterface
    */
-  protected $contextHandler;
+  protected ContextHandlerInterface $contextHandler;
 
   /**
    * The context manager service.
    *
    * @var \Drupal\Core\Plugin\Context\ContextRepositoryInterface
    */
-  protected $contextRepository;
+  protected ContextRepositoryInterface $contextRepository;
 
   /**
    * A list of group evaluations.
    *
    * @var array
    */
-  protected $group_evaluations = [];
+  protected array $groupEvaluations = [];
 
   /**
-   * Constructor.
+   * Constructs a new GroupEvaluator.
+   *
+   * @param \Drupal\Core\Plugin\Context\ContextHandlerInterface $context_handler
+   *   The context handler.
+   * @param \Drupal\Core\Plugin\Context\ContextRepositoryInterface $context_repository
+   *   The context repository.
    */
   public function __construct(ContextHandlerInterface $context_handler, ContextRepositoryInterface $context_repository) {
     $this->contextRepository = $context_repository;
@@ -51,9 +54,9 @@ class GroupEvaluator implements GroupEvaluatorInterface {
   /**
    * {@inheritdoc}
    */
-  public function evaluateGroup(BlockVisibilityGroup $block_visibility_group) {
+  public function evaluateGroup(BlockVisibilityGroup $block_visibility_group): bool {
     $group_id = $block_visibility_group->id();
-    if (!isset($this->group_evaluations[$group_id])) {
+    if (!isset($this->groupEvaluations[$group_id])) {
       /** @var \Drupal\Core\Condition\ConditionPluginCollection $conditions */
       $conditions = $block_visibility_group->getConditions();
       if (empty($conditions)) {
@@ -62,27 +65,27 @@ class GroupEvaluator implements GroupEvaluatorInterface {
       }
       $logic = $block_visibility_group->getLogic();
       if ($this->applyContexts($conditions, $logic)) {
-        $this->group_evaluations[$group_id] = $this->resolveConditions($conditions, $logic);
+        $this->groupEvaluations[$group_id] = $this->resolveConditions($conditions, $logic);
       }
       else {
-        $this->group_evaluations[$group_id] = FALSE;
+        $this->groupEvaluations[$group_id] = FALSE;
       }
     }
-    return $this->group_evaluations[$group_id];
+    return $this->groupEvaluations[$group_id];
   }
 
   /**
-   * Apply contexts.
+   * Apply contexts to condition plugins.
    *
    * @param \Drupal\Core\Condition\ConditionPluginCollection $conditions
    *   A collection of condition plugins.
    * @param string $logic
-   *   The logical operator.
+   *   The logical operator ('and' or 'or').
    *
    * @return bool
-   *   Whether the conditions have been applied or not.
+   *   Whether the conditions have been applied successfully.
    */
-  protected function applyContexts(ConditionPluginCollection &$conditions, $logic) {
+  protected function applyContexts(ConditionPluginCollection &$conditions, string $logic): bool {
     $have_1_testable_condition = FALSE;
     foreach ($conditions as $id => $condition) {
       if ($condition instanceof ContextAwarePluginInterface) {
@@ -90,10 +93,21 @@ class GroupEvaluator implements GroupEvaluatorInterface {
           $contexts = $this->contextRepository->getRuntimeContexts(array_values($condition->getContextMapping()));
 
           // Skip when any of the contexts is not set.
+          $missingContextData = FALSE;
           foreach ($contexts as $context) {
             if ($context->getContextData()->getValue() === NULL) {
-              return FALSE;
+              if ($logic == 'and') {
+                return FALSE;
+              }
+              else {
+                $missingContextData = TRUE;
+                break;
+              }
             }
+          }
+
+          if ($missingContextData) {
+            continue;
           }
 
           $this->contextHandler->applyContextMapping($condition, $contexts);
@@ -101,7 +115,7 @@ class GroupEvaluator implements GroupEvaluatorInterface {
         }
         catch (ContextException $e) {
           // Log a message about the error.
-          \Drupal::logger('block_visibility_groups')->error($e);
+          \Drupal::logger('block_visibility_groups')->error($e->getMessage());
 
           // If the condition is negated, shouldn't refuse so quickly.
           if ($logic == 'and' && !$condition->isNegated()) {

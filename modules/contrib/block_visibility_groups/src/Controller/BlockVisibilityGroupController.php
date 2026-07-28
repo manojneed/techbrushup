@@ -21,10 +21,12 @@ class BlockVisibilityGroupController extends ControllerBase {
    *
    * @var \Drupal\Core\Condition\ConditionManager
    */
-  protected $conditionManager;
+  protected ConditionManager $conditionManager;
 
   /**
-   * {@inheritdoc}
+   * BlockVisibilityGroupController constructor.
+   *
+   * @param \Drupal\Core\Condition\ConditionManager $plugin_manager_condition
    */
   public function __construct(ConditionManager $plugin_manager_condition) {
     $this->conditionManager = $plugin_manager_condition;
@@ -45,7 +47,7 @@ class BlockVisibilityGroupController extends ControllerBase {
    * @return array
    *   A renderable array.
    */
-  public function index($param_1, $param_2) {
+  public function index($param_1, $param_2): array {
     return [
       '#type' => 'markup',
       '#markup' => $this->t('Implement method: index with parameter(s): $param_1, $param_2'),
@@ -63,7 +65,7 @@ class BlockVisibilityGroupController extends ControllerBase {
    * @return array
    *   The condition selection page.
    */
-  public function selectCondition(BlockVisibilityGroup $block_visibility_group, $redirect) {
+  public function selectCondition(BlockVisibilityGroup $block_visibility_group, $redirect): array {
     $build = [
       '#theme' => 'links',
       '#links' => [],

@@ -2,13 +2,13 @@
 
 /**
  * @file
- * Install, update and uninstall functions for the block_visibility_groups module.
+ * Install,update & uninstall functions for the block_visibility_groups module.
  */
 
 /**
  * Implements hook_uninstall().
  */
-function block_visibility_groups_uninstall() {
+function block_visibility_groups_uninstall(): void {
   // Remove the 'condition_group' condition from all blocks.
   /** @var \Drupal\Core\Entity\EntityStorageInterface $block_storage */
   $block_storage = \Drupal::service('entity_type.manager')->getStorage('block');

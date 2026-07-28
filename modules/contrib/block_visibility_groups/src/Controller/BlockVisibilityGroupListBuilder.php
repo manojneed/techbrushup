@@ -14,7 +14,7 @@ class BlockVisibilityGroupListBuilder extends ConfigEntityListBuilder {
   /**
    * {@inheritdoc}
    */
-  public function buildHeader() {
+  public function buildHeader(): array {
     $header['label'] = $this->t('Block Visibility Group');
     $header['id'] = $this->t('Machine name');
     $header += parent::buildHeader();
@@ -25,7 +25,7 @@ class BlockVisibilityGroupListBuilder extends ConfigEntityListBuilder {
   /**
    * {@inheritdoc}
    */
-  public function buildRow(EntityInterface $entity) {
+  public function buildRow(EntityInterface $entity): array {
     $row['label'] = $entity->label();
     $row['id'] = $entity->id();
     // You probably want a few more properties here...

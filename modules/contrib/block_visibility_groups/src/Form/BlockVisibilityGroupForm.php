@@ -5,7 +5,6 @@ namespace Drupal\block_visibility_groups\Form;
 use Drupal\block_visibility_groups\ConditionsSetFormTrait;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 
 /**
  * Entity form for Block Visibility Group entity.
@@ -17,7 +16,7 @@ class BlockVisibilityGroupForm extends EntityForm {
   /**
    * {@inheritdoc}
    */
-  public function form(array $form, FormStateInterface $form_state) {
+  public function form(array $form, FormStateInterface $form_state): array {
     $form = parent::form($form, $form_state);
     /** @var \Drupal\block_visibility_groups\Entity\BlockVisibilityGroup $block_visibility_group */
     $block_visibility_group = $this->entity;
@@ -57,7 +56,6 @@ class BlockVisibilityGroupForm extends EntityForm {
       $form['conditions_section'] = $this->createConditionsSet($form, $block_visibility_group, 'edit');
 
     }
-    /* You will need additional form elements for your custom properties. */
 
     return $form;
   }
@@ -65,7 +63,7 @@ class BlockVisibilityGroupForm extends EntityForm {
   /**
    * {@inheritdoc}
    */
-  public function save(array $form, FormStateInterface $form_state) {
+  public function save(array $form, FormStateInterface $form_state): int {
     $block_visibility_group = $this->entity;
     $status = $block_visibility_group->save();
 
@@ -84,6 +82,8 @@ class BlockVisibilityGroupForm extends EntityForm {
       );
     }
     $form_state->setRedirectUrl($block_visibility_group->toUrl('collection'));
+
+    return $status;
   }
 
 }
