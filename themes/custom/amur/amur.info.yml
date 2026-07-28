@@ -1,0 +1,37 @@
+name: Amur # required key
+description: light weight theme developed from scratch by <a href="https://techbrushup.com/">Manoj Kumar</a>
+type: theme # required key
+core_version_requirement: ^9.5 || ^10 || ^11 # required key
+base theme: olivero # required key
+libraries:
+  - amur/global-styling
+# Extend Olivero’s global-styling so your CSS/JS loads after Olivero’s.
+libraries-extend:
+  olivero/global-styling:
+    - amur/global-styling
+libraries-override:
+  # Remove single assets.
+  olivero/global-styling:
+    css:
+      component:
+        css/components/header-site-branding.css: false
+
+regions:
+  header: Header
+  primary_menu: Primary menu
+  secondary_menu: Secondary menu
+  hero: Hero (full width)
+  highlighted: Highlighted
+  breadcrumb: Breadcrumb
+  social: Social Bar
+  content_above: Content Above
+  content: Content
+  sidebar: Sidebar
+  content_below: Content Below
+  footer_top: Footer Top
+  footer_bottom: Footer Bottom
+  footer_first: Footer First
+  footer_second: Footer Second
+  footer_third: Footer Third
+  footer_fourth: Fourth Fourth
+  footer: Footer

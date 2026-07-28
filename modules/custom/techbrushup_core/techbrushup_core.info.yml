@@ -1,0 +1,8 @@
+name: Techbrushup
+type: module
+description: Provides custom functionality
+core_version_requirement: ^10 || ^11
+Version: 1.x
+package: Techbrushup
+dependencies:
+  - drupal:block

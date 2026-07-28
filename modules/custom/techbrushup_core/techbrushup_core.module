@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_theme().
+ */
+
+function techbrushup_core_theme($existing, $type, $theme, $path)
+{
+    return [
+        "topbar" => [
+            "variables" => [
+                "body_text" => null,
+                "body_text" => null,
+            ],
+        ],
+        "footer" => [
+            "variables" => [
+                "body_text" => null,
+                "body_text" => null,
+            ],
+        ],
+    ];
+}

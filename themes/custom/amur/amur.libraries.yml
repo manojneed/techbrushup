@@ -1,0 +1,10 @@
+global-styling:
+  version: 1.x
+  css:
+    theme:
+      assets/css/styles.css: {}
+      assets/fontawesome/css/all.css: {}
+  js:
+    assets/js/scripts.js: {}
+  dependencies:
+    - olivero/global-styling # Ensures Olivero’s CSS/JS load first

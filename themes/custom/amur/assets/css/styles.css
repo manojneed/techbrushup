@@ -1,0 +1,630 @@
+/* @charset "UTF-8"; */
+/* website primary color #116392
+/*!
+ * First ensure that all HTML elements have the box-sizing property set to border-box
+ */
+/* * {
+    box-sizing: border-box;
+}
+
+*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+.topnav {
+    display: flex;
+    justify-content: space-between;
+    /* Space between logo and hamburger/nav-links */
+    align-items: center;
+}
+
+/* Logo styles */
+.logo {
+    display: block;
+    /* Show logo by default on mobile */
+}
+
+.logo img {
+    height: 40px;
+    /* Adjust logo height as needed */
+}
+
+/* Hamburger menu styles */
+.hamburger {
+    display: flex;
+    /* Show hamburger by default */
+    flex-direction: column;
+    cursor: pointer;
+    z-index: 1001;
+    /* Ensure it's above the menu */
+}
+
+.hamburger .line {
+    width: 25px;
+    height: 3px;
+    background-color: #333;
+    /* Dark color for hamburger lines */
+    margin: 4px 0;
+    transition: all 0.3s ease;
+}
+
+/* Navigation links styles */
+.nav-links {
+
+    background-color: white;
+    /* White background for the menu */
+    position: fixed;
+    top: 60px;
+    /* Start below the header */
+    left: -100%;
+    /* Start off-screen to the left */
+    width: 60%;
+    /* Adjust width as needed */
+    height: calc(100vh - 60px);
+    /* Full height minus header height */
+    overflow: hidden;
+    transition: left 0.3s ease;
+    /* Transition left property */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    /* Align items to the top */
+    z-index: 999;
+    /* Ensure it's below the header */
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    /* Optional: Add a shadow for depth */
+}
+
+.nav-links li {
+    margin: 20px 0;
+}
+
+.nav-links a {
+    color: #333;
+    /* Dark text for menu items */
+    text-decoration: none;
+    font-size: 18px;
+}
+
+/* Active class for toggling */
+.nav-links.active {
+    left: 0;
+    /* Slide in from the left */
+}
+
+/* Hamburger animation */
+.hamburger.active .line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.active .line:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active .line:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+.default-search {
+    display: none;
+}
+
+.user-menu {
+    display: none;
+}
+
+.col-2 {
+    display: none;
+}
+
+.social-icons {
+    display: flex;
+    gap: 10px;
+}
+
+.social-icons img {
+    width: 32px;
+    /* control icon size */
+    height: auto;
+}
+
+/* 
+.main-menu {
+    display: none
+} */
+
+/* Media query for larger desktops (larger than 1024px) */
+@media (min-width: 768px) {
+
+    /* Adjust navigation links for desktop */
+    .nav-links {
+        position: static;
+        /* Reset fixed positioning */
+        width: auto;
+        /* Reset width */
+        height: auto;
+        /* Reset height */
+        flex-direction: row;
+        /* Display links in a row */
+        background-color: transparent;
+        /* Remove background color */
+        box-shadow: none;
+        /* Remove shadow */
+        justify-content: flex-end;
+        /* Align links to the right */
+        transition: none;
+        /* Remove transition */
+        top: 0;
+        /* Reset top position */
+    }
+
+    .nav-links li {
+        margin: 0 15px;
+        /* Add spacing between links */
+    }
+
+    .nav-links a {
+        color: #333;
+        /* Dark text for menu items */
+        font-size: 16px;
+        /* Adjust font size */
+    }
+
+    /* Hide hamburger on desktop */
+    .hamburger {
+        display: none;
+    }
+
+    body {
+        background-image: none
+    }
+
+
+    /* 12 columns classes with percentage */
+
+    .col-1 {
+        width: 8.33%;
+    }
+
+    .col-2 {
+        width: 16.66%;
+        display: block;
+    }
+
+    .col-3 {
+        width: 25%;
+    }
+
+    .col-4 {
+        width: 33.33%;
+    }
+
+    .col-5 {
+        width: 41.66%;
+    }
+
+    .col-6 {
+        width: 50%;
+    }
+
+    .col-7 {
+        width: 58.33%;
+    }
+
+    .col-8 {
+        width: 66.66%;
+    }
+
+    .col-9 {
+        width: 75%;
+    }
+
+    .col-10 {
+        width: 83.33%;
+    }
+
+    .col-11 {
+        width: 91.66%;
+    }
+
+    .col-12 {
+        width: 100%;
+    }
+
+    /* .container {
+    width: 100%;
+} */
+
+    [class*="col-"] {
+        float: left;
+        /* padding: 15px; */
+    }
+
+    .row::after {
+        content: "";
+        clear: both;
+        display: table;
+    }
+
+    .topnav {
+        font-family: 'Source Sans Pro Topnav', sans-serif;
+    }
+
+    /*
+    .topnav a {
+        color: #000;
+        font-weight: bold;
+    }
+
+    */
+    /* .topnav ul li {
+    padding: 10px 10px;
+} */
+
+    .topnav ul li:hover .arrow-down {
+        transform: rotate(180deg);
+        transition: all 0.4s ease;
+    }
+
+    .topnav ul li:hover a {
+        position: static;
+    }
+
+    .topnav ul li:hover .dropdown-content {
+        display: block;
+    }
+
+    a {
+        text-decoration: none;
+
+    }
+
+    .nav-links {
+
+        display: flex;
+        gap: 17px;
+    }
+
+    .menu__item--level-2 li {
+        padding: 10px 0;
+        /* Add padding for spacing */
+        border-bottom: 1px solid #060000;
+        /* Horizontal line separator */
+    }
+
+    /* Remove the border from the last item */
+    .menu__item--level-2 li:last-child {
+        border-bottom: none;
+    }
+
+    .menu__item--level-2 {
+        display: block
+    }
+
+    .dropdown-content {
+        /* Hide by default */
+        display: none;
+        position: absolute;
+        background-color: #f4f4f4;
+        color: #333;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        /* Ensure it appears above other content */
+    }
+
+    .default-search {
+        display: block;
+    }
+
+    /* main menu*/
+
+    .main-menu {
+
+        font-family: "Roboto", sans-serif;
+        background-color: #ECECEC;
+        overflow: hidden;
+        margin: 16px auto;
+        border-radius: 4px;
+        position: relative;
+    }
+
+
+    .main-menu .right-arrow,
+    .main-menu .left-arrow {
+        position: absolute;
+        height: 100%;
+        width: 100px;
+        top: 0;
+        display: none;
+        align-items: center;
+        padding: 0px 10px;
+        pointer-events: none;
+    }
+
+    .main-menu .right-arrow.active,
+    .main-menu .left-arrow.active {
+        display: flex;
+    }
+
+    .main-menu .right-arrow {
+        right: 0;
+        background: linear-gradient(to left, #000 50%, transparent);
+        justify-content: flex-end;
+        top: 0px;
+    }
+
+    .main-menu .left-arrow {
+        background: linear-gradient(to right, #000 50%, transparent);
+
+    }
+
+    .main-menu svg {
+        width: 24px;
+        height: 24px;
+        /* padding: 8px; */
+        cursor: pointer;
+        border-radius: 50%;
+        pointer-events: auto;
+    }
+
+    .main-menu svg:hover {
+        background: #333;
+    }
+
+    .main-menu a {
+        color: #fff;
+        background: #003;
+        display: inline-block;
+        padding: 4px 24px;
+        border-radius: 4px;
+
+    }
+
+    .main-menu a.active {
+        background-color: #fff;
+        color: #003;
+    }
+
+    .main-menu ul {
+        display: flex;
+        gap: 16px;
+        padding: 12px 24px;
+        margin: 0;
+        overflow-x: scroll;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        scroll-behavior: smooth;
+    }
+
+    .main-menu ul.dragging {
+
+        scroll-behavior: auto;
+    }
+
+    .main-menu ul::-webkit-scrollbar {
+        display: none;
+    }
+
+    .main-menu ul li:hover .arrow-down {
+        transform: rotate(180deg);
+        transition: all 0.4s ease;
+
+    }
+
+    /* SIGNIN */
+
+
+    .signin {
+        background-color: #04AA6D;
+        padding: 16px 15px;
+        font-size: 16px;
+        margin: 4px 2px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+        border-radius: 10px;
+    }
+
+    .signin:hover {
+        background-color: #04AA6D;
+        color: white;
+        border-radius: 50px;
+    }
+
+    /* SIGNUP */
+    .signup {
+        background-color: #116392;
+        padding: 16px 15px;
+        font-size: 16px;
+        margin: 4px 2px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+        border-radius: 10px;
+    }
+
+    .signup:hover {
+        background-color: #116392;
+        color: white;
+        border-radius: 50px;
+    }
+
+    /*   USER PROFILE /*
+
+/* User menu container */
+    .user-menu {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* User toggle button */
+    .user-menu-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #007bff;
+        color: white;
+        font-size: 16px;
+    }
+
+    .user-menu-toggle:hover {
+        background-color: #0056b3;
+    }
+
+    /* User avatar */
+    .user-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+    }
+
+    /* Dropdown arrow */
+    .dropdown-arrow {
+        font-size: 12px;
+        transition: transform 0.3s ease;
+        /* Smooth rotation */
+    }
+
+    /* Rotate arrow when dropdown is open */
+    .user-menu:hover .dropdown-arrow,
+    .user-menu-toggle.active .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+
+    /* Dropdown menu */
+    .user-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        margin: 0;
+        min-width: 150px;
+        z-index: 1000;
+    }
+
+    .user-dropdown li {
+        padding: 10px;
+    }
+
+    .user-dropdown li a {
+        text-decoration: none;
+        color: #333;
+        display: block;
+    }
+
+    .user-dropdown li a:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Show dropdown on hover */
+    .user-menu:hover .user-dropdown {
+        display: block;
+    }
+
+    /* CODE-SNIPPET*/
+
+    .code-snippet {
+        position: relative;
+        background-color: #282c34;
+        color: #abb2bf;
+        padding: 20px;
+        border-radius: 8px;
+        /* width: 300px; */
+        margin-bottom: 20px;
+        /* Add spacing between snippets */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    pre {
+        margin: 0;
+        font-family: 'Courier New', Courier, monospace;
+        white-space: pre-wrap;
+    }
+
+    .copy-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #61dafb;
+        color: #282c34;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .copy-button:hover {
+        background-color: #4fa8c7;
+    }
+
+    .copy-button.copied {
+        background-color: #4caf50;
+        /* Green color for feedback */
+    }
+
+
+
+    /* FOOTER CSS */
+
+    .footer {
+        background-color: #ECECEC;
+        font-size: 12px;
+        color: #767676;
+        margin-bottom: 1px;
+        line-height: 200%;
+    }
+
+    .flex-container {
+        display: flex;
+        justify-content: space-between;
+        /* text left, icons right */
+        align-items: center;
+        /* vertical alignment */
+        flex-wrap: wrap;
+        /* allows wrapping if too tight on small screens */
+        gap: 10px;
+    }
+
+
+    .social li {
+        display: inline;
+        padding: 10px 10px;
+    }
+
+    footer .row .col-3 span {
+        padding: 0px 39px;
+        font-weight: bold;
+    }
+
+    footer .row .col-3 h5 {
+        font-weight: bold;
+    }
+
+    .footer a {
+        font-size: 12px;
+        color: #767676;
+        line-height: 110%;
+        margin-bottom: 1px;
+    }
+
+    .footer a:hover {
+        color: #c35a15;
+
+    }
+}

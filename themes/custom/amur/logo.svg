@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="100" viewBox="0 20 250 100">
+  <!-- Background (Optional) -->
+  <rect width="250" height="100" fill="#FFFFFF" />
+
+  <!-- Tech Icon (Brush + Upward Arrow) -->
+  <g transform="translate(10, 20)">
+    <!-- Brush Handle -->
+    <rect x="10" y="10" width="8" height="30" fill="#007BFF" />
+    <!-- Brush Bristles -->
+    <path d="M10 40 L18 40 L20 50 L8 50 Z" fill="#007BFF" />
+    <!-- Upward Arrow -->
+    <path d="M30 30 L40 20 L50 30 L45 30 L45 50 L35 50 L35 30 Z" fill="#FF6B6B" />
+  </g>
+
+  <!-- Text: TechBrushUp -->
+  <text x="70" y="50" font-family="Arial, sans-serif" font-size="24" fill="#333">
+    TechBrushup
+  </text>
+</svg>
