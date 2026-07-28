@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\twig_tweak\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
@@ -16,7 +18,7 @@ abstract class AbstractTestCase extends KernelTestBase {
   protected static function assertCache(array $expected_cache, array $actual_cache): void {
     self::sortCache($expected_cache);
     self::sortCache($actual_cache);
-    PHPUnitAssert::assertSame($expected_cache, $actual_cache);
+    PHPUnitAssert::assertEquals($expected_cache, $actual_cache);
   }
 
   /**
@@ -25,7 +27,7 @@ abstract class AbstractTestCase extends KernelTestBase {
   protected static function assertRenderArray(array $expected_build, array $actual_build): void {
     self::sortCache($expected_build['#cache']);
     self::sortCache($actual_build['#cache']);
-    PHPUnitAssert::assertSame($expected_build, $actual_build);
+    PHPUnitAssert::assertEquals($expected_build, $actual_build);
   }
 
   /**

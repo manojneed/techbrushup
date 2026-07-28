@@ -8,6 +8,9 @@ use Twig\Error\SyntaxError;
 use Twig\Source;
 use Twig\Util\TemplateDirIterator;
 
+/**
+ * Twig Deprecation Analyzer.
+ */
 class TwigDeprecationAnalyzer {
 
   /**
@@ -29,11 +32,12 @@ class TwigDeprecationAnalyzer {
    * errors, it did not gave us the file/line information, so we needed to copy
    * and modify that behavior. We folded in our twig file/line parsing inline
    * then to make it simpler.
-   * 
+   *
    * @param \Drupal\Core\Extension\Extension $extension
    *   The extension to be analyzed.
    *
    * @return \Drupal\upgrade_status\DeprecationMessage[]
+   *   The deprecation message.
    */
   public function analyze(Extension $extension): array {
     $deprecations = [];
@@ -54,6 +58,11 @@ class TwigDeprecationAnalyzer {
           );
         }
         else {
+          // Skip deprecations from vendor paths (e.g. Symfony's
+          // DebugClassLoader reporting on Drupal core Twig classes).
+          if (str_contains($file, DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR)) {
+            return;
+          }
           // Otherwise record the deprecation from the original caught error.
           $deprecations[] = new DeprecationMessage(
             $msg,
@@ -71,13 +80,14 @@ class TwigDeprecationAnalyzer {
     foreach ($iterator as $name => $contents) {
       try {
         $this->twigEnvironment->parse($this->twigEnvironment->tokenize(new Source($contents, $name)));
-      } catch (SyntaxError $e) {
+      }
+      catch (SyntaxError $e) {
         // Report twig syntax error which stops us from parsing it.
         $deprecations[] = new DeprecationMessage(
           'Twig template ' . $name . ' contains a syntax error and cannot be parsed.',
           $name,
           $e->getTemplateLine(),
-         'TwigDeprecationAnalyzer'
+          'TwigDeprecationAnalyzer'
         );
       }
     }

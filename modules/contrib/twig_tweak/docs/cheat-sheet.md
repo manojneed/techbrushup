@@ -130,13 +130,27 @@ Note that drupal_field() does not work for view modes powered by Layout Builder.
 ```
 
 ## Drupal Token
+
+See Drupal\Core\Utility\Token::replace()
 ```twig
+{# Global tokens: #}
 {{ drupal_token('site:name') }}
+
+{# Tokens with required data (2nd parameter): #}
+{{ drupal_token('node:title', {node: node}) }}
+
+{# Tokens with required data (2nd parameter) and options (3rd parameter): #}
+{{ drupal_token('node:title', {node: node}, {clear: true}) }}
 ```
 
 ## Drupal Config
 ```twig
 {{ drupal_config('system.site', 'name') }}
+```
+
+## Drupal Logger
+```twig
+{{ drupal_logger('my_module', 'notice', 'Missing expected field XYZ') }}
 ```
 
 ## Drupal Dump

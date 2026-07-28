@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\twig_tweak\Kernel;
 
 use Drupal\Core\Cache\CacheableMetadata;
@@ -14,9 +16,7 @@ final class CacheMetadataExtractorTest extends AbstractTestCase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = [
-    'twig_tweak',
-  ];
+  protected static $modules = ['twig_tweak'];
 
   /**
    * Test callback.
@@ -31,13 +31,13 @@ final class CacheMetadataExtractorTest extends AbstractTestCase {
     $input->setCacheContexts(['url', 'user.permissions']);
     $input->setCacheTags(['node', 'node.view']);
 
-    $build = $extractor->extractCacheMetadata($input);
+    $actual_build = $extractor->extractCacheMetadata($input);
     $expected_build['#cache'] = [
       'contexts' => ['url', 'user.permissions'],
       'tags' => ['node', 'node.view'],
       'max-age' => 5,
     ];
-    self::assertSame($expected_build, $build);
+    self::assertSame($expected_build, $actual_build);
 
     // -- Render array.
     $input = [
@@ -69,7 +69,7 @@ final class CacheMetadataExtractorTest extends AbstractTestCase {
         'max-age' => 20,
       ],
     ];
-    $build = $extractor->extractCacheMetadata($input);
+    $actual_build = $extractor->extractCacheMetadata($input);
 
     $expected_build = [
       '#cache' => [
@@ -87,13 +87,7 @@ final class CacheMetadataExtractorTest extends AbstractTestCase {
         'max-age' => 10,
       ],
     ];
-    self::assertRenderArray($expected_build, $build);
-
-    // -- Wrong type.
-    $exception = new \InvalidArgumentException('The input should be either instance of Drupal\Core\Cache\CacheableDependencyInterface or array. stdClass was given.');
-    self::expectExceptionObject($exception);
-    /* @noinspection PhpParamsInspection */
-    $extractor->extractCacheMetadata(new \stdClass());
+    self::assertRenderArray($expected_build, $actual_build);
   }
 
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\twig_tweak\View;
 
 use Drupal\Core\Block\TitleBlockPluginInterface;
@@ -13,57 +15,24 @@ use Symfony\Component\HttpFoundation\RequestStack;
 /**
  * Region view builder.
  */
-class RegionViewBuilder {
+final readonly class RegionViewBuilder {
 
   /**
-   * The entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
-
-  /**
-   * The config factory.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
-
-  /**
-   * The request stack.
-   *
-   * @var \Symfony\Component\HttpFoundation\RequestStack
-   */
-  protected $requestStack;
-
-  /**
-   * The title resolver.
-   *
-   * @var \Drupal\Core\Controller\TitleResolverInterface
-   */
-  protected $titleResolver;
-
-  /**
-   * Constructs a RegionViewBuilder object.
+   * {@selfdoc}
    */
   public function __construct(
-    EntityTypeManagerInterface $entity_type_manager,
-    ConfigFactoryInterface $config_factory,
-    RequestStack $request_stack,
-    TitleResolverInterface $title_resolver,
-  ) {
-    $this->entityTypeManager = $entity_type_manager;
-    $this->configFactory = $config_factory;
-    $this->requestStack = $request_stack;
-    $this->titleResolver = $title_resolver;
-  }
+    public EntityTypeManagerInterface $entityTypeManager,
+    public ConfigFactoryInterface $configFactory,
+    public RequestStack $requestStack,
+    public TitleResolverInterface $titleResolver,
+  ) {}
 
   /**
    * Builds the render array of a given region.
    *
-   * @param string $region
+   * @param non-empty-string $region
    *   The region to build.
-   * @param string $theme
+   * @param non-empty-string|null $theme
    *   (optional) The name of the theme to load the region. If it is not
    *   provided then default theme will be used.
    *
@@ -90,16 +59,18 @@ class RegionViewBuilder {
     foreach ($blocks as $id => $block) {
       $access = $block->access('view', NULL, TRUE);
       $cache_metadata = $cache_metadata->addCacheableDependency($access);
-      if ($access->isAllowed()) {
-        $block_plugin = $block->getPlugin();
-        if ($block_plugin instanceof TitleBlockPluginInterface) {
-          $request = $this->requestStack->getCurrentRequest();
-          if ($route = $request->attributes->get(RouteObjectInterface::ROUTE_OBJECT)) {
-            $block_plugin->setTitle($this->titleResolver->getTitle($request, $route));
-          }
-        }
-        $build[$id] = $view_builder->view($block);
+      if (!$access->isAllowed()) {
+        continue;
       }
+      $block_plugin = $block->getPlugin();
+      // Title block requires special treatment.
+      if ($block_plugin instanceof TitleBlockPluginInterface) {
+        $request = $this->requestStack->getCurrentRequest();
+        if ($route = $request->attributes->get(RouteObjectInterface::ROUTE_OBJECT)) {
+          $block_plugin->setTitle($this->titleResolver->getTitle($request, $route));
+        }
+      }
+      $build[$id] = $view_builder->view($block);
     }
 
     if ($build) {

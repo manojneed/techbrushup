@@ -6,7 +6,9 @@ use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityViewBuilderInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\node\NodeInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Provides methods for exporting book to different formats.
@@ -14,6 +16,8 @@ use Drupal\node\NodeInterface;
  * If you would like to add another format, swap this class in container.
  */
 class BookExport {
+
+  use MessengerTrait;
 
   /**
    * The node storage.
@@ -69,20 +73,22 @@ class BookExport {
    *   Thrown when the node was not attached to a book.
    */
   public function bookExportHtml(NodeInterface $node): array {
-    if (!isset($node->book)) {
-      throw new \Exception();
+    $book = $node->getBook();
+    if (empty($book)) {
+      $this->messenger()->addWarning(t('%title is not in a book and cannot be exported.', ['%title' => $node->label()]));
+      throw new NotFoundHttpException();
     }
 
-    $tree = $this->bookManager->bookSubtreeData($node->book);
+    $tree = $this->bookManager->bookSubtreeData($book);
     $contents = $this->exportTraverse($tree, [$this, 'bookNodeExport']);
     $node = $this->entityRepository->getTranslationFromContext($node);
-    $book_title = $this->nodeStorage->load($node->book['bid'])->label();
+    $book_title = $this->nodeStorage->load($book['bid'])->label();
     return [
       '#theme' => 'book_export_html',
       '#title' => $node->label(),
       '#book_title' => $book_title,
       '#contents' => $contents,
-      '#depth' => $node->book['depth'],
+      '#depth' => $book['depth'],
       '#cache' => [
         'tags' => $node->getEntityType()->getListCacheTags(),
       ],
@@ -127,7 +133,7 @@ class BookExport {
    *
    * @param \Drupal\node\NodeInterface $node
    *   The node that will be output.
-   * @param string $children
+   * @param array|string $children
    *   (optional) All the rendered child nodes within the current node. Defaults
    *   to an empty string.
    *
@@ -136,7 +142,7 @@ class BookExport {
    *
    * @see \Drupal\book\BookExport::exportTraverse()
    */
-  protected function bookNodeExport(NodeInterface $node, $children = ''): array {
+  protected function bookNodeExport(NodeInterface $node, array|string $children = ''): array {
     $build = $this->viewBuilder->view($node, 'print');
     return [
       '#theme' => 'book_node_export_html',

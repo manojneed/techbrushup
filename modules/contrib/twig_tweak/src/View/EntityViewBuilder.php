@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\twig_tweak\View;
 
 use Drupal\Core\Access\AccessResult;
@@ -11,29 +13,15 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 /**
  * Entity view builder.
  */
-class EntityViewBuilder {
+final readonly class EntityViewBuilder {
 
   /**
-   * The entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   * {@selfdoc}
    */
-  protected $entityTypeManager;
-
-  /**
-   * The entity repository service.
-   *
-   * @var \Drupal\Core\Entity\EntityRepositoryInterface
-   */
-  protected $entityRepository;
-
-  /**
-   * Constructs an EntityViewBuilder object.
-   */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, EntityRepositoryInterface $entity_repository) {
-    $this->entityTypeManager = $entity_type_manager;
-    $this->entityRepository = $entity_repository;
-  }
+  public function __construct(
+    private EntityTypeManagerInterface $entityTypeManager,
+    private EntityRepositoryInterface $entityRepository,
+  ) {}
 
   /**
    * Builds a render array for a given entity.

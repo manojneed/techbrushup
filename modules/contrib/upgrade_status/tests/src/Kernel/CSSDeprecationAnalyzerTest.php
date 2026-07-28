@@ -11,10 +11,13 @@ use Drupal\upgrade_status\CSSDeprecationAnalyzer;
  * @group upgrade_status
  * @coversDefaultClass \Drupal\upgrade_status\CSSDeprecationAnalyzer
  */
+#[\PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses]
 class CSSDeprecationAnalyzerTest extends KernelTestBase {
 
   /**
    * The temporary directory path.
+   *
+   * @var string
    */
   protected $tempPath;
 
@@ -43,7 +46,7 @@ class CSSDeprecationAnalyzerTest extends KernelTestBase {
   /**
    * @covers ::getAllCSSFiles
    */
-  public function testGetAllCSSFiles() {
+  public function testGetAllCssFiles() {
     touch($this->tempPath . '/test.css');
     mkdir($this->tempPath . '/subdir');
     touch($this->tempPath . '/subdir/test.css');
@@ -63,7 +66,6 @@ class CSSDeprecationAnalyzerTest extends KernelTestBase {
 
     $class = new \ReflectionClass(CSSDeprecationAnalyzer::class);
     $method = $class->getMethod('getAllCSSFiles');
-    $method->setAccessible(TRUE);
 
     $expected = [
       $this->tempPath . '/subdir/test.css',

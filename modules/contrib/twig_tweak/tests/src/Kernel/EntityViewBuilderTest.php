@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\twig_tweak\Kernel;
 
-use Drupal\Component\Utility\DeprecationHelper;
 use Drupal\Core\Cache\Cache;
-use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 
@@ -28,6 +28,8 @@ final class EntityViewBuilderTest extends AbstractTestCase {
     'node',
     'field',
     'text',
+    'views',
+    'filter',
   ];
 
   /**
@@ -35,32 +37,33 @@ final class EntityViewBuilderTest extends AbstractTestCase {
    */
   public function setUp(): void {
     parent::setUp();
-    $this->installConfig(['system', 'node']);
     $this->installEntitySchema('node');
+    $this->installConfig(['system', 'node']);
     NodeType::create(['type' => 'article'])->save();
     $this->setUpCurrentUser([], ['access content']);
   }
 
   /**
    * Test callback.
+   *
+   * @see \twig_tweak_test_node_access()
    */
   public function testEntityViewBuilder(): void {
-
     $view_builder = $this->container->get('twig_tweak.entity_view_builder');
-
+    $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     $values = [
       'type' => 'article',
       'title' => 'Public node',
     ];
-    $public_node = Node::create($values);
-    $public_node->save();
+    $public_node = $node_storage->create($values);
+    $node_storage->save($public_node);
 
     $values = [
       'type' => 'article',
       'title' => 'Private node',
     ];
-    $private_node = Node::create($values);
-    $private_node->save();
+    $private_node = $node_storage->create($values);
+    $node_storage->save($private_node);
 
     // -- Full mode.
     $build = $view_builder->build($public_node);
@@ -88,12 +91,11 @@ final class EntityViewBuilderTest extends AbstractTestCase {
 
     $expected_html = <<< 'HTML'
       <article>
-        <h2><a href="/node/1" rel="bookmark"><span>Public node</span></a></h2>
         <div></div>
       </article>
-    HTML;
+      HTML;
     $actual_html = $this->renderPlain($build);
-    self::assertSame(self::normalizeHtml($expected_html), self::normalizeHtml($actual_html));
+    self::assertMarkup($expected_html, $actual_html);
 
     // -- Teaser mode.
     $build = $view_builder->build($public_node, 'teaser');
@@ -132,9 +134,9 @@ final class EntityViewBuilderTest extends AbstractTestCase {
           </ul>
         </div>
       </article>
-    HTML;
+      HTML;
     $actual_html = $this->renderPlain($build);
-    self::assertSame(self::normalizeHtml($expected_html), self::normalizeHtml($actual_html));
+    self::assertMarkup($expected_html, $actual_html);
 
     // -- Private node with access check.
     $build = $view_builder->build($private_node);
@@ -176,12 +178,11 @@ final class EntityViewBuilderTest extends AbstractTestCase {
 
     $expected_html = <<< 'HTML'
       <article>
-        <h2><a href="/node/2" rel="bookmark"><span>Private node</span></a></h2>
         <div></div>
       </article>
-    HTML;
+      HTML;
     $actual_html = $this->renderPlain($build);
-    self::assertSame(self::normalizeHtml($expected_html), self::normalizeHtml($actual_html));
+    self::assertMarkup($expected_html, $actual_html);
   }
 
   /**
@@ -190,20 +191,20 @@ final class EntityViewBuilderTest extends AbstractTestCase {
   private function renderPlain(array $build): string {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
-    $actual_html = DeprecationHelper::backwardsCompatibleCall(
-      \Drupal::VERSION, '10.3.0',
-      fn () => $renderer->renderInIsolation($build),
-      fn () => $renderer->renderPlain($build),
+    return \preg_replace(
+      pattern: '#<footer>.+</footer>#s',
+      replacement: '',
+      subject: (string) $renderer->renderInIsolation($build),
     );
-    $actual_html = preg_replace('#<footer>.+</footer>#s', '', $actual_html);
-    return $actual_html;
   }
 
   /**
-   * Normalizes the provided HTML.
+   * {@selfdoc}
    */
-  private static function normalizeHtml(string $html): string {
-    return rtrim(preg_replace(['#\s{2,}#', '#\n#'], '', $html));
+  private static function assertMarkup(string $expected_markup, string $actual_markup): void {
+    $normalize_html = static fn (string $html): string =>
+      \rtrim(\preg_replace(['#\s{2,}#', '#\n#'], '', $html));
+    self::assertSame($normalize_html($expected_markup), $normalize_html($actual_markup));
   }
 
 }

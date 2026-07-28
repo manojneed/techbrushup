@@ -15,7 +15,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\book\BookManagerInterface;
-use Drupal\node\NodeInterface;
+use Drupal\book\BookInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -81,6 +81,8 @@ class BookNavigationBlock extends BlockBase implements ContainerFactoryPluginInt
       'block_mode' => "all pages",
       'show_top_item' => FALSE,
       'use_top_level_title' => FALSE,
+      'starting_level' => 1,
+      'expanded' => FALSE,
     ];
   }
 
@@ -123,6 +125,60 @@ class BookNavigationBlock extends BlockBase implements ContainerFactoryPluginInt
         'visible' => [':input[name="settings[book_block_mode]"]' => ['value' => 'book pages']],
       ],
     ];
+    $form['starting_level'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Starting level'),
+      '#options' => [
+        1 => $this->t('Level 1 (top level)'),
+        2 => $this->t('Level 2'),
+        3 => $this->t('Level 3'),
+        4 => $this->t('Level 4'),
+        5 => $this->t('Level 5'),
+        6 => $this->t('Level 6'),
+        7 => $this->t('Level 7'),
+        8 => $this->t('Level 8'),
+        9 => $this->t('Level 9'),
+      ],
+      '#default_value' => $this->configuration['starting_level'] ?? 1,
+      '#description' => $this->t('The level in the book hierarchy at which to start rendering. Level 1 shows the entire book, level 2 starts with children of the top page, etc.'),
+    ];
+    $form['max_depth'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Max depth'),
+      '#options' => [
+        0 => $this->t('No max'),
+        1 => $this->t('Level 1 (top level)'),
+        2 => $this->t('Level 2'),
+        3 => $this->t('Level 3'),
+        4 => $this->t('Level 4'),
+        5 => $this->t('Level 5'),
+        6 => $this->t('Level 6'),
+        7 => $this->t('Level 7'),
+        8 => $this->t('Level 8'),
+        9 => $this->t('Level 9'),
+      ],
+      '#default_value' => $this->configuration['max_depth'] ?? 0,
+      '#description' => $this->t('The maximum depth of the book that should be rendered.'),
+    ];
+    $form['expanded'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Expanded'),
+      '#description' => $this->t('If checked, the menu will be expanded by default.'),
+      '#default_value' => $this->configuration['expanded'],
+    ];
+
+    $books = $this->bookManager->getAllBooks();
+    $book_titles = array_column($books, 'title');
+    $book_ids = array_column($books, 'bid');
+    $book_options = [0 => '- None -'] + array_combine($book_ids, $book_titles);
+    array_unshift($book_titles, '- None -');
+    $form['book_select'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Select book menu (optional)'),
+      '#description' => $this->t('Select the book to display the contents of. Make a selection here if you want to use this block to display the contents of a specific book.'),
+      '#default_value' => $this->configuration['book_select'] ?? 0,
+      '#options' => $book_options,
+    ];
 
     return $form;
   }
@@ -134,6 +190,10 @@ class BookNavigationBlock extends BlockBase implements ContainerFactoryPluginInt
     $this->configuration['block_mode'] = $form_state->getValue('book_block_mode');
     $this->configuration['show_top_item'] = $form_state->getValue('book_block_mode_book_pages')['show_top_item'];
     $this->configuration['use_top_level_title'] = $form_state->getValue('use_top_level_title');
+    $this->configuration['starting_level'] = $form_state->getValue('starting_level');
+    $this->configuration['expanded'] = $form_state->getValue('expanded');
+    $this->configuration['book_select'] = $form_state->getValue('book_select');
+    $this->configuration['max_depth'] = $form_state->getValue('max_depth');
   }
 
   /**
@@ -144,9 +204,20 @@ class BookNavigationBlock extends BlockBase implements ContainerFactoryPluginInt
   public function build(): array {
     $current_bid = 0;
 
+    if (!empty($this->configuration['book_select'])) {
+      $selected_book = $this->configuration['book_select'];
+    }
+
+    if (!empty($this->configuration['max_depth'])) {
+      $max_depth = $this->configuration['max_depth'];
+    }
+
     $node = $this->routeMatch->getParameter('node');
-    if ($node instanceof NodeInterface && !empty($node->book['bid'])) {
-      $current_bid = $node->book['bid'];
+    if ($node instanceof BookInterface) {
+      $book = $node->getBook();
+      if (!empty($book['bid'])) {
+        $current_bid = $book['bid'];
+      }
     }
 
     if ($this->configuration['block_mode'] == 'all pages') {
@@ -157,7 +228,7 @@ class BookNavigationBlock extends BlockBase implements ContainerFactoryPluginInt
         if ($book['bid'] == $current_bid) {
           // If the current page is a node associated with a book, the menu
           // needs to be retrieved.
-          $data = $this->bookManager->bookTreeAllData($node->book['bid'], $node->book);
+          $data = $this->bookManager->bookTreeAllData($selected_book ?? $book['bid'], $book, $max_depth ?? NULL, $this->configuration['starting_level'], $this->configuration['expanded']);
           $book_menus[$book_id] = $this->bookManager->bookTreeOutput($data);
         }
         else {
@@ -181,21 +252,19 @@ class BookNavigationBlock extends BlockBase implements ContainerFactoryPluginInt
       }
     }
     elseif ($current_bid) {
+
       // Only display this block when the user is browsing a book
       // and included unpublished books if the user has access.
       $query = $this->nodeStorage->getQuery()
         ->accessCheck()
-        ->condition('nid', $node->book['bid'], '=');
-      if (!$this->currentUser->hasPermission('view any unpublished content')) {
-        $query->condition('status', NodeInterface::PUBLISHED);
-      }
+        ->condition('nid', $book['bid'], '=');
       $nid = $query->execute();
 
       // Only show the block if the user has view access for the top-level node.
       if ($nid) {
         $node = $this->routeMatch->getParameter('node');
         $current_nid = $node->id();
-        $tree = $this->bookManager->bookTreeAllData($node->book['bid'], $node->book);
+        $tree = $this->bookManager->bookTreeAllData($selected_book ?? $book['bid'], $book, $max_depth ?? NULL, $this->configuration['starting_level'], $this->configuration['expanded']);
         $data = reset($tree);
 
         // Handle different display modes.
@@ -213,7 +282,22 @@ class BookNavigationBlock extends BlockBase implements ContainerFactoryPluginInt
         }
 
         // Prepare the output based on settings.
-        if ($this->configuration['show_top_item']) {
+        $starting_level = $this->configuration['starting_level'];
+        $current_depth = $book['depth'];
+
+        // When starting_level > 1, and we're on a page at or below that level,
+        // show only the current page's subtree, not siblings.
+        if ($starting_level > 1 && $current_depth >= $starting_level) {
+          // Find the current page in the tree and show its children.
+          $current_subtree = $this->findNodeInTree($tree, $current_nid);
+          if ($current_subtree && !empty($current_subtree['below'])) {
+            $output = $this->bookManager->bookTreeOutput($current_subtree['below']);
+          }
+          else {
+            return [];
+          }
+        }
+        elseif ($this->configuration['show_top_item']) {
           $output = $this->bookManager->bookTreeOutput($tree);
         }
         else {
@@ -264,11 +348,37 @@ class BookNavigationBlock extends BlockBase implements ContainerFactoryPluginInt
   protected function blockAccess(AccountInterface $account): AccessResultInterface {
     if ($this->configuration['block_mode'] != 'all pages') {
       $node = $this->routeMatch->getParameter('node');
-      if (!$node || empty($node->book['bid'])) {
+      if (!($node instanceof BookInterface) || empty($node->getBook()['bid'])) {
         return AccessResult::forbidden();
       }
     }
     return AccessResult::allowed();
+  }
+
+  /**
+   * Finds a node in the book tree by its ID.
+   *
+   * @param array $tree
+   *   The book tree structure.
+   * @param int|string $nid
+   *   The node ID to find.
+   *
+   * @return array|null
+   *   The tree entry for the node, or NULL if not found.
+   */
+  protected function findNodeInTree(array $tree, int|string $nid): ?array {
+    foreach ($tree as $item) {
+      if (isset($item['link']['nid']) && $item['link']['nid'] == $nid) {
+        return $item;
+      }
+      if (!empty($item['below'])) {
+        $found = $this->findNodeInTree($item['below'], $nid);
+        if ($found !== NULL) {
+          return $found;
+        }
+      }
+    }
+    return NULL;
   }
 
 }
