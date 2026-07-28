@@ -7,16 +7,16 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\techbrushup_core\Service\UserGlobals;
 
 /**
- * Provides a 'Topbar' Block.
+ * Provides a 'Header' Block.
  *
  * @Block(
- *   id = "topbar",
- *   admin_label = @Translation("Custom Topbar"),
+ *   id = "Header",
+ *   admin_label = @Translation("Custom Header"),
  *   category = @Translation("techbrushup")
  * )
  */
 
-class Topbar extends BlockBase implements ContainerFactoryPluginInterface 
+class Header extends BlockBase implements ContainerFactoryPluginInterface 
 {
   protected UserGlobals $userGlobals;
 
@@ -41,7 +41,7 @@ class Topbar extends BlockBase implements ContainerFactoryPluginInterface
     public function build()
     {
         return [
-            "#theme"       => "topbar",
+            "#theme"       => "header",
             '#user_picture_url' => $this->userGlobals->getProfilePictureUrl(),
         ];
     }

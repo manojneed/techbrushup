@@ -1,0 +1,8 @@
+services:
+  techbrushup_core.user_globals:
+    class: Drupal\techbrushup_core\Service\UserGlobals
+    arguments:
+      - '@current_user'
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@file_url_generator'

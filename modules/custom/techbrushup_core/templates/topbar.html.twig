@@ -2,9 +2,8 @@
     <div class="logo">
         {{ drupal_block('system_branding_block', {label: '', use_site_name: false, use_site_slogan: false}) }}
     </div>
-    {{ drupal_menu('top') }}
+    <div class="top-menu" id="top-menu">{{ drupal_menu('top') }}</div>
     <div class="default-search"> {{ drupal_block('search_form_block') }}</div>
-
     <div class="hamburger" id="hamburger">
       <div class="line"></div>
       <div class="line"></div>
@@ -13,15 +12,6 @@
    
  {# Check if the user is authenticated #}
 {% if user.isauthenticated %}
-{% set user_entity = user.entity %}
-  {# Check if the user has a profile picture #}
-  {% if user_entity.user_picture.value %}
-    {# Get the file URI and generate the URL #}
-    {% set user_picture_url = user_entity.user_picture.entity.uri.value|file_url %}
-  {% else %}
-    {# Use a default avatar if no profile picture is set #}
-    {% set user_picture_url = '/themes/custom/amur/images/default-avatar.png' %}
-  {% endif %}
   <div class="user-menu">
     {# User avatar and name #}
     <button class="user-menu-toggle">
