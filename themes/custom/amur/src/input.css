@@ -1,0 +1,303 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+
+/* ===========================================
+   Tailwind CSS v4 – main entry
+   =========================================== */
+@import "tailwindcss";
+
+/* =========================================
+   SOURCE PATHS
+========================================= */
+
+@source "../templates";
+@source "../js";
+@source "../../../../modules/custom";
+
+/* =========================================
+   THEME CONFIGURATION
+========================================= */
+
+
+/* ===========================================
+   Custom theme extensions (CSS-first config)
+   =========================================== */
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --animate-fade-in: fadeIn 0.5s ease-out;
+  --animate-fade-in-up: fadeInUp 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+/* Keyframes for fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+/* ===========================================
+   Global resets & scroll behaviour
+   =========================================== */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+html {
+  scroll-behavior: smooth;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ===========================================
+   TOP DROPDOWN MENUS (clean modern hover)
+   =========================================== */
+.menu-group, .profile-group {
+  position: relative;
+}
+.menu-dropdown, .profile-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+  pointer-events: none;
+  z-index: 99999;
+  border-radius: 1.25rem;
+  backdrop-filter: blur(8px);
+}
+.menu-group::after, .profile-group::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  height: 14px;
+  background: transparent;
+  z-index: 99998;
+  pointer-events: auto;
+}
+.menu-group::after { left: 0; }
+.profile-group::after { right: 0; }
+.menu-group:hover .menu-dropdown,
+.menu-dropdown:hover,
+.profile-group:hover .profile-dropdown,
+.profile-dropdown:hover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.dropdown-icon, .profile-icon {
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+.menu-group:hover .dropdown-icon,
+.profile-group:hover .profile-icon {
+  transform: rotate(180deg);
+}
+
+/* ===========================================
+   HORIZONTAL TECH MENU (slate hover + white text)
+   =========================================== */
+.fancy-menu-item {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(2px);
+}
+.fancy-menu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+.fancy-menu-item:hover::before {
+  left: 100%;
+}
+.fancy-menu-item.active {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  box-shadow: 0 8px 20px rgba(79,70,229,0.3);
+  color: white;
+  border-color: transparent;
+}
+.fancy-menu-item:not(.active):hover {
+  background-color: #475569 !important;     /* slate-600 */
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.2);
+  border-color: transparent !important;
+}
+
+/* ===========================================
+   MOBILE SUBMENU
+   =========================================== */
+.mobile-submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.mobile-submenu.open {
+  max-height: 320px;
+}
+.mobile-submenu li a {
+  padding-left: 2.5rem;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.mobile-menu-item .chevron {
+  transition: transform 0.25s ease;
+}
+.mobile-menu-item.open .chevron {
+  transform: rotate(180deg);
+}
+
+/* ===========================================
+   DARK MODE OVERRIDES (from original HTML)
+   =========================================== */
+html.dark {
+  color-scheme: dark;
+}
+html.dark body {
+  background: radial-gradient(circle at 10% 20%, #0b1120, #030712) !important;
+}
+html.dark header {
+  background: rgba(15, 23, 42, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.8) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+html.dark .relative.bg-gradient-to-r.from-slate-50,
+html.dark .bg-gradient-to-r.from-slate-50 {
+  background: #0f172a !important;
+  border-bottom-color: #1e293b !important;
+}
+html.dark header .text-slate-700,
+html.dark header .text-slate-600,
+html.dark header .dropdown-trigger,
+html.dark header .profile-group span {
+  color: #e2e8f0 !important;
+}
+html.dark header input[type="text"] {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border: 1px solid #334155 !important;
+}
+html.dark .rounded-full.border-slate-200 {
+  border-color: #334155 !important;
+  background-color: #0f172a !important;
+}
+/* Horizontal menu dark */
+html.dark #mainMenu,
+html.dark .relative.bg-gradient-to-r.from-slate-50 {
+  background: #0f172a !important;
+}
+html.dark .fancy-menu-item:not(.active) {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+html.dark .fancy-menu-item:not(.active):hover {
+  background-color: #64748b !important;
+  color: white !important;
+  transform: translateY(-2px);
+  border-color: transparent !important;
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.4);
+}
+html.dark .fancy-menu-item.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  box-shadow: 0 8px 20px rgba(99,102,241,0.4);
+}
+/* Scroll overlays dark */
+html.dark #leftOverlay div,
+html.dark #rightOverlay div {
+  background: linear-gradient(to right, #0f172a, transparent) !important;
+}
+html.dark #rightOverlay div {
+  background: linear-gradient(to left, #0f172a, transparent) !important;
+}
+html.dark #scrollLeft, html.dark #scrollRight {
+  color: #cbd5e1 !important;
+  background-color: rgba(30, 41, 59, 0.7) !important;
+}
+/* Dropdowns dark premium */
+html.dark .menu-dropdown,
+html.dark .profile-dropdown {
+  background: #1e293b !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid #334155 !important;
+  box-shadow: 0 25px 35px -12px rgba(0, 0, 0, 0.6);
+}
+html.dark .menu-dropdown a,
+html.dark .profile-dropdown a {
+  color: #e2e8f0 !important;
+}
+html.dark .menu-dropdown a:hover {
+  background-color: #334155 !important;
+  color: #c7d2fe !important;
+}
+/* Mobile menu dark */
+html.dark #mobileMenu .bg-white {
+  background-color: #0f172a !important;
+  background-image: linear-gradient(to bottom, #0f172a, #111827);
+}
+html.dark .mobile-menu-item span.font-medium {
+  color: #e2e8f0 !important;
+}
+html.dark .mobile-submenu li a {
+  color: #cbd5e1 !important;
+}
+html.dark .mobile-submenu li a:hover {
+  background-color: #1e293b !important;
+  color: #a5b4fc !important;
+}
+/* Cards & sections dark */
+html.dark .group.bg-white {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+html.dark .group.bg-white .text-slate-800 {
+  color: #f8fafc !important;
+}
+html.dark .bg-indigo-50 {
+  background-color: #1e293b !important;
+  border-color: #334155;
+}
+html.dark .text-indigo-700 {
+  color: #a5b4fc !important;
+}
+html.dark h1.bg-gradient-to-r {
+  background-image: linear-gradient(to right, #f0f9ff, #c7d2fe, #a5b4fc) !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
+/* Custom scrollbar for dark mode */
+html.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: #111827;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 12px;
+}

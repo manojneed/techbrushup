@@ -5,10 +5,7 @@ core_version_requirement: ^9.5 || ^10 || ^11 # required key
 base theme: olivero # required key
 libraries:
   - amur/global-styling
-# Extend Olivero’s global-styling so your CSS/JS loads after Olivero’s.
-libraries-extend:
-  olivero/global-styling:
-    - amur/global-styling
+  - amur/font-awesome
 libraries-override:
   # Remove single assets.
   olivero/global-styling:

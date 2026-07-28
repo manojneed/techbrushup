@@ -45,13 +45,13 @@
  * @see html.html.twig
  */
 #}
-
+{# <div 
+  data-component="hello-react"
+  data-props='{{ {"message": "Welcome to Drupal!"}|json_encode }}'
+></div> #}
 <div id="page-wrapper" class="page-wrapper">
   <div id="page">
-
-  <header role="banner">
-    {{ page.header }}
-  </header>
+  {{ page.header }}
     <div id="main-wrapper" class="layout-main-wrapper layout-container">
       <div id="main" class="layout-main">
         <div class="main-content">
@@ -84,30 +84,6 @@
         </div>
       </div>
     </div>
-
-  <footer role="contentinfo">
-    <div class="container">
-      <div class="row">
-        <div class="col-3">
-          {{ page.footer_first }}
-        </div>
-        <div class="col-3">
-          {{ page.footer_second }}
-        </div>
-        <div class="col-3">
-          {{ page.footer_third }}
-        </div>
-        <div class="col-3">
-          {{ page.footer_fourth }}
-        </div>
-      </div>
-    </div>
-    <div class="col-12">
-      {{ page.footer }}
-    </div>
-  </footer>
-
-    <div class="overlay" data-drupal-selector="overlay"></div>
-
+{{ page.footer }}
   </div>
 </div>

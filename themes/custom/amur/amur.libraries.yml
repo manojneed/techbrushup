@@ -2,9 +2,25 @@ global-styling:
   version: 1.x
   css:
     theme:
+      assets/css/output.css: {}
       assets/css/styles.css: {}
-      assets/fontawesome/css/all.css: {}
   js:
-    assets/js/scripts.js: {}
+    # assets/js/theme.js: { attributes: { defer: false } } # Load in head
+
+    
   dependencies:
-    - olivero/global-styling # Ensures Olivero’s CSS/JS load first
+    - core/jquery
+    - core/drupal
+    - core/once
+    - olivero/global-styling # This ensures Olivero's CSS loads first
+
+font-awesome:
+  remote: https://fontawesome.com/
+  version: 6.0.0
+  license:
+    name: MIT
+    url: https://fontawesome.com/license
+    gpl-compatible: true
+  css:
+    theme:
+      https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css: { type: external, minified: true }
