@@ -21,6 +21,8 @@ return array(
     'VariableAnalysis\\' => array($vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis'),
     'Twig\\Extra\\Html\\' => array($vendorDir . '/twig/html-extra'),
     'Twig\\' => array($vendorDir . '/twig/twig/src'),
+    'TwigStorybook\\Tests\\' => array($vendorDir . '/e0ipso/twig-storybook/tests/src'),
+    'TwigStorybook\\' => array($vendorDir . '/e0ipso/twig-storybook/src'),
     'TijsVerkoyen\\CssToInlineStyles\\' => array($vendorDir . '/tijsverkoyen/css-to-inline-styles/src'),
     'Symfony\\Runtime\\Symfony\\Component\\' => array($vendorDir . '/symfony/runtime/Internal'),
     'Symfony\\Polyfill\\Php86\\' => array($vendorDir . '/symfony/polyfill-php86'),
